@@ -1,0 +1,55 @@
+# ============================================================
+# Docker 构建忽略文件
+# 减小构建上下文，加速 docker build
+# ============================================================
+
+# ---- 构建产物 ----
+build/
+cmake-build-*/
+CMakeFiles/
+*.ninja
+.ninja_*
+compile_commands.json
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# ---- IDE / 编辑器 ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ---- Git ----
+.git/
+.gitignore
+.gitattributes
+
+# ---- 日志 / 录制 / 运行时数据 ----
+*.log
+Camera/Data/
+Camera/log/
+records/
+logs/
+*.screenlog
+
+# ---- 图片 / 测试截图 ----
+imgs/
+
+# ---- 校准临时文件 ----
+calibration/build/
+
+# ---- macOS ----
+.DS_Store
+**/.DS_Store
+
+# ---- 不需要的配置 ----
+configs/calibration.yaml
+configs/camera.yaml
+
+# ---- Docker 自身 ----
+Dockerfile
+.dockerignore
+docker-compose.yml

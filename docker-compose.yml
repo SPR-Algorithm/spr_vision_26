@@ -1,0 +1,29 @@
+# ============================================================
+# Docker Compose 配置
+# 用于 CI/CD 和本地开发测试
+# ============================================================
+
+version: "3.8"
+
+services:
+  # ---- 编译 + 运行 Demo ----
+  spr-vision:
+    build: .
+    image: spr-vision:latest
+    container_name: spr-vision-demo
+    # Demo 默认命令在 Dockerfile 中已定义
+    # 可覆盖: command: ./build/auto_aim_test --config-path=configs/demo.yaml
+
+  # ---- 仅编译（CI 用） ----
+  spr-vision-build:
+    build:
+      context: .
+      target: build  # 如果将来改为多阶段构建可指定
+    image: spr-vision:latest
+    container_name: spr-vision-build
+    command: |
+      bash -c "
+        cmake -B build -DCMAKE_BUILD_TYPE=Release &&
+        cmake --build build -j\$(nproc) &&
+        echo '=== Build SUCCESS ==='
+      "

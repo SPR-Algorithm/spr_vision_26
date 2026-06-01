@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPR Vision 26 — Debugger</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', monospace; }
+
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 20px; background: #161b22; border-bottom: 1px solid #30363d;
+  }
+  header h1 { font-size: 16px; font-weight: 600; }
+  #status { font-size: 12px; padding: 3px 10px; border-radius: 12px; background: #21262d; }
+  #status.connected { background: #1a4731; color: #3fb950; }
+  #status.disconnected { background: #3d1f1f; color: #f85149; }
+
+  .layout { display: flex; height: calc(100vh - 49px); }
+
+  .canvas-wrap {
+    flex: 1; position: relative; background: #010409;
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas { max-width: 100%; max-height: 100%; display: block; }
+
+  .sidebar {
+    width: 350px; background: #161b22; border-left: 1px solid #30363d;
+    overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .card { background: #21262d; border-radius: 8px; padding: 12px; }
+  .card h3 { font-size: 12px; color: #8b949e; text-transform: uppercase;
+              letter-spacing: 0.5px; margin-bottom: 10px; }
+  .card.collapsed .card-body { display: none; }
+  .card h3 { cursor: pointer; user-select: none; display: flex; justify-content: space-between; }
+  .card h3::after { content: '▼'; font-size: 10px; transition: 0.2s; }
+  .card.collapsed h3::after { content: '▶'; }
+
+  .stat { display: flex; justify-content: space-between; align-items: center;
+          padding: 4px 0; border-bottom: 1px solid #30363d; font-size: 13px; }
+  .stat:last-child { border-bottom: none; }
+  .stat .val { font-weight: 600; color: #58a6ff; }
+  .stat .val.warn { color: #d29922; }
+  .stat .val.ok { color: #3fb950; }
+  .stat .val.good { color: #3fb950; }
+
+  .det-item {
+    background: #0d1117; border-radius: 6px; padding: 8px; margin-bottom: 6px;
+    font-size: 12px; border-left: 3px solid #58a6ff;
+  }
+  .det-item.red { border-left-color: #f85149; }
+  .det-item.blue { border-left-color: #58a6ff; }
+  .det-item .label { font-weight: 600; margin-bottom: 4px; }
+  .det-item .conf-bar { height: 4px; background: #30363d; border-radius: 2px; margin-top: 6px; }
+  .det-item .conf-fill { height: 100%; border-radius: 2px; background: #3fb950; }
+
+  .controls { display: flex; flex-direction: column; gap: 8px; }
+  label { font-size: 12px; color: #8b949e; }
+  input[type=range] { width: 100%; accent-color: #58a6ff; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+  .switch { position: relative; width: 36px; height: 20px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #30363d; border-radius: 20px; cursor: pointer; transition: .2s; }
+  .slider:before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
+  input:checked + .slider { background: #238636; }
+  input:checked + .slider:before { transform: translateX(16px); }
+
+  #fps-counter { font-size: 11px; color: #8b949e; text-align: right; }
+
+  .param-group { margin-bottom: 10px; }
+  .param-group h4 { font-size: 12px; color: #58a6ff; margin-bottom: 6px; padding: 4px 8px; background: #1a2a3a; border-radius: 4px; }
+  .param-group h4.active { background: #1a4731; color: #3fb950; }
+  .param-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+  .param-row .plabel { color: #8b949e; flex: 0 0 80px; }
+  .param-row input[type=range] { flex: 1; margin: 0 6px; height: 14px; }
+  .param-row input[type=number] { flex: 0 0 72px; text-align: right; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-family: monospace; }
+  .param-row .pval { flex: 0 0 72px; text-align: right; font-weight: 600; color: #e6edf3; font-size: 11px; }
+
+  .param-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+  .param-tab { padding: 4px 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; font-size: 11px; color: #8b949e; transition: 0.15s; }
+  .param-tab.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+
+  .param-send-btn { width: 100%; padding: 6px; margin-top: 8px; background: #238636; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .param-send-btn:hover { background: #2ea043; }
+
+  .mini-stat { display: inline-block; background: #0d1117; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 4px; }
+  .preset-btns { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .preset-btn { padding: 3px 8px; font-size: 10px; border: 1px solid #30363d; border-radius: 4px; background: #0d1117; color: #8b949e; cursor: pointer; }
+  .preset-btn:hover { background: #30363d; color: #e6edf3; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SPR Vision 26 — Parameter Tuner</h1>
+  <span id="status" class="disconnected">disconnected</span>
+  <span id="fps-counter">-- fps</span>
+</header>
+<div class="layout">
+  <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+  <div class="sidebar">
+    <!-- EKF 实时状态 -->
+    <div class="card" id="ekf-card">
+      <h3 onclick="this.parentElement.classList.toggle('collapsed')">EKF State <span id="ekf-active-set" class="mini-stat" style="color:#3fb950">--</span></h3>
+      <div class="card-body">
+        <div class="stat"><span>Pos (x,y,z)</span><span class="val" id="ekf-pos">--</span></div>
+        <div class="stat"><span>Vel (vx,vy,vz)</span><span class="val" id="ekf-vel">--</span></div>
+        <div class="stat"><span>Yaw / AngVel</span><span class="val" id="ekf-yaw-w">--</span></div>
+        <div class="stat"><span>r / l / h</span><span class="val" id="ekf-rlh">--</span></div>
+        <div class="stat"><span>v1 / v2</span><span class="val" id="ekf-v12">--</span></div>
+        <div class="stat"><span>R (yaw/pitch/dist)</span><span class="val" id="ekf-rvals">--</span></div>
+        <div class="stat"><span>NIS / Converged</span><span class="val" id="ekf-nis-conv">--</span></div>
+        <div id="ekf-pdiag" style="font-size:10px;color:#484f58;margin-top:4px;word-break:break-all;"></div>
+      </div>
+    </div>
+
+    <!-- 滤波器参数调节 -->
+    <div class="card" id="tuner-card">
+      <h3 onclick="this.parentElement.classList.toggle('collapsed')">Filter Parameter Tuner</h3>
+      <div class="card-body">
+        <div class="param-tabs" id="param-tabs"></div>
+        <div id="param-panel"></div>
+        <div class="preset-btns" id="preset-btns"></div>
+        <button class="param-send-btn" onclick="sendParams()">Apply Parameters</button>
+      </div>
+    </div>
+
+    <!-- 性能统计 -->
+    <div class="card">
+      <h3>Performance</h3>
+      <div class="card-body">
+        <div class="stat"><span>Latency</span><span class="val" id="s-latency">--</span></div>
+        <div class="stat"><span>Detections</span><span class="val" id="s-dets">--</span></div>
+        <div class="stat"><span>Frame</span><span class="val" id="s-frame">--</span></div>
+      </div>
+    </div>
+
+    <!-- 检测结果列表 -->
+    <div class="card">
+      <h3>Detections</h3>
+      <div class="card-body"><div id="det-list"></div></div>
+    </div>
+
+    <!-- 显示控制 -->
+    <div class="card">
+      <h3>Display</h3>
+      <div class="card-body">
+        <div class="controls">
+          <div class="toggle"><span>Show keypoints</span><label class="switch"><input type="checkbox" id="show-kpts" checked><span class="slider"></span></label></div>
+          <div class="toggle"><span>Show reprojection</span><label class="switch"><input type="checkbox" id="show-reproj" checked><span class="slider"></span></label></div>
+          <div class="toggle"><span>Show labels</span><label class="switch"><input type="checkbox" id="show-labels" checked><span class="slider"></span></label></div>
+          <label>JPEG quality: <span id="q-val">60</span></label>
+          <input type="range" id="quality" min="10" max="95" value="60">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ARMOR_NAMES = ['Guard','1','2','3','4','5','Outpost','Base-S','Base-B'];
+const COLOR_NAMES = ['Blue','Red','Gray','Purple'];
+const COLOR_HEX   = ['#58a6ff','#f85149','#8b949e','#bc8cff'];
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const img = new Image();
+
+let frameCount = 0, lastFpsTime = Date.now(), fps = 0;
+let paramSets = [], activeParamIndex = 0;
+let ws = null;
+
+// 预设参数方案
+const PRESETS = {
+  'Slow (旋转目标)':   { v1:10, v2:0.5,  R_yaw:0.004, R_pitch:0.004, R_distance:0.09, threshold:2.0 },
+  'Normal (常规)':     { v1:100, v2:400, R_yaw:0.004, R_pitch:0.004, R_distance:0.09, threshold:8.0 },
+  'Fast (快速平移)':   { v1:500, v2:1000,R_yaw:0.002, R_pitch:0.002, R_distance:0.05, threshold:30.0 },
+  'Very Fast (超快)':  { v1:1000,v2:2000,R_yaw:0.001, R_pitch:0.001, R_distance:0.03, threshold:999 },
+};
+
+function connect() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
+  const s = document.getElementById('status');
+  ws.onopen  = () => { s.textContent='connected'; s.className='connected'; };
+  ws.onclose = () => { s.textContent='disconnected'; s.className='disconnected'; setTimeout(connect,2000); };
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type==='ekf_state' && msg.data) updateEKFState(msg.data);
+      else if (msg.type==='param_sets' && msg.data) { paramSets=msg.data; renderParamTabs(); renderParamPanel(); renderPresets(); }
+      else if (msg.frame) { renderFrame(msg); updateSidebar(msg); frameCount++; }
+    } catch {}
+  };
+}
+
+function renderFrame(data) {
+  img.onload = () => {
+    canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
+    ctx.drawImage(img,0,0);
+    if (document.getElementById('show-kpts').checked) drawDetections(data.detections||[]);
+    if (document.getElementById('show-reproj').checked) drawReprojections(data.reprojections||[]);
+  };
+  img.src='data:image/jpeg;base64,'+data.frame;
+}
+
+function drawDetections(dets) {
+  dets.forEach(d=>{
+    const pts=d.pts; if(!pts||pts.length<4)return;
+    const c=COLOR_HEX[d.color]||'#fff';
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<4;i++) ctx.lineTo(pts[i][0],pts[i][1]); ctx.closePath();
+    ctx.strokeStyle=c; ctx.lineWidth=2; ctx.stroke();
+    pts.forEach((p,i)=>{ ctx.beginPath(); ctx.arc(p[0],p[1],4,0,Math.PI*2); ctx.fillStyle=i===0?'#ffa500':c; ctx.fill(); });
+    if (document.getElementById('show-labels').checked) {
+      const cx=pts.reduce((s,p)=>s+p[0],0)/4, cy=pts.reduce((s,p)=>s+p[1],0)/4;
+      const label=`${COLOR_NAMES[d.color]}-${ARMOR_NAMES[d.number]} ${(d.conf*100).toFixed(0)}%`;
+      ctx.font='bold 13px monospace'; ctx.fillStyle='rgba(0,0,0,0.6)';
+      ctx.fillRect(cx-2,cy-14,ctx.measureText(label).width+4,16); ctx.fillStyle=c; ctx.fillText(label,cx,cy);
+    }
+  });
+}
+
+function drawReprojections(reproj) {
+  reproj.forEach(r=>{
+    const pts=r.pts; if(!pts||pts.length<2)return;
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]); for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]); ctx.closePath();
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    pts.forEach(p=>{ ctx.beginPath(); ctx.arc(p[0],p[1],3,0,Math.PI*2); ctx.fillStyle='#ffd700'; ctx.fill(); });
+  });
+}
+
+function updateSidebar(data) {
+  const lat=data.latency_ms||0, el=document.getElementById('s-latency');
+  el.textContent=lat.toFixed(1)+' ms'; el.className='val '+(lat<10?'ok':lat<20?'':'warn');
+  document.getElementById('s-dets').textContent=(data.detections||[]).length;
+  document.getElementById('s-frame').textContent=data.frame?(data.frame.length*0.75/1024).toFixed(1)+' KB':'--';
+  const list=document.getElementById('det-list'); list.innerHTML='';
+  (data.detections||[]).forEach(d=>{
+    const div=document.createElement('div'); div.className='det-item '+(d.color===1?'red':'blue');
+    div.innerHTML=`<div class="label">${COLOR_NAMES[d.color]||'?'} — ${ARMOR_NAMES[d.number]||'?'}</div><div>conf: ${(d.conf*100).toFixed(1)}%</div><div class="conf-bar"><div class="conf-fill" style="width:${d.conf*100}%"></div></div>`;
+    list.appendChild(div);
+  });
+}
+
+function updateEKFState(s) {
+  document.getElementById('ekf-pos').textContent=`${s.x.toFixed(3)}, ${s.y.toFixed(3)}, ${s.z.toFixed(3)}`;
+  document.getElementById('ekf-vel').textContent=`${s.vx.toFixed(3)}, ${s.vy.toFixed(3)}, ${s.vz.toFixed(3)}`;
+  document.getElementById('ekf-yaw-w').textContent=`${(s.yaw*180/Math.PI).toFixed(1)}° / ${s.w.toFixed(3)} rad/s`;
+  document.getElementById('ekf-rlh').textContent=`r=${s.r.toFixed(3)} l=${s.l.toFixed(3)} h=${s.h.toFixed(3)}`;
+  document.getElementById('ekf-v12').textContent=`v1=${s.v1.toFixed(1)} v2=${s.v2.toFixed(1)}`;
+  document.getElementById('ekf-rvals').textContent=`Ry=${s.R_yaw.toExponential(1)} Rp=${s.R_pitch.toExponential(1)} Rd=${s.R_distance.toExponential(1)}`;
+  const nisEl=document.getElementById('ekf-nis-conv');
+  nisEl.textContent=`NIS=${s.nis.toFixed(2)} / ${s.converged?'CONVERGED':'NOT'}`;
+  nisEl.className='val '+(s.converged?'good':'warn');
+  document.getElementById('ekf-active-set').textContent='['+(s.active_param_set||'--')+']';
+  if (s.P_diag&&s.P_dim) document.getElementById('ekf-pdiag').textContent='P_diag: '+s.P_diag.slice(0,s.P_dim).map(v=>v.toExponential(1)).join(', ');
+  activeParamIndex=paramSets.findIndex(p=>p.name===s.active_param_set);
+  if (activeParamIndex>=0) { document.querySelectorAll('.param-tab').forEach((el,i)=>el.classList.toggle('active',i===activeParamIndex)); }
+}
+
+function renderParamTabs() {
+  const tabs=document.getElementById('param-tabs'); tabs.innerHTML='';
+  paramSets.forEach((ps,i)=>{
+    const tab=document.createElement('div'); tab.className='param-tab'+(ps.active?' active':'');
+    tab.textContent=ps.name+' (<'+ps.angular_velocity_threshold.toFixed(1)+')';
+    tab.onclick=()=>{ activeParamIndex=i; document.querySelectorAll('.param-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); renderParamPanel(); };
+    tabs.appendChild(tab);
+  });
+}
+
+function renderParamPanel() {
+  const panel=document.getElementById('param-panel');
+  if (!paramSets.length||activeParamIndex>=paramSets.length) { panel.innerHTML='<div style="color:#8b949e;font-size:12px;padding:8px;">No parameter sets loaded</div>'; return; }
+  const ps=paramSets[activeParamIndex];
+  panel.innerHTML=`
+    <div class="param-group"><h4 class="${ps.active?'active':''}">Set [${activeParamIndex}]: ${ps.name}</h4>
+      ${sliderRow('v1','v1 (pos noise)',ps.v1,1,2000,1)}
+      ${sliderRow('v2','v2 (ang noise)',ps.v2,0.1,2000,0.1)}
+      ${sliderRow('R_yaw','R_yaw',ps.R_yaw,0.0001,0.1,0.0001)}
+      ${sliderRow('R_pitch','R_pitch',ps.R_pitch,0.0001,0.1,0.0001)}
+      ${sliderRow('R_distance','R_distance',ps.R_distance,0.001,1.0,0.001)}
+      ${sliderRow('angular_velocity_threshold','AngThresh (rad/s)',ps.angular_velocity_threshold,0.1,30,0.1)}
+    </div>`;
+}
+
+function sliderRow(name, label, value, min, max, step) {
+  return `<div class="param-row"><span class="plabel">${label}</span>
+    <input type="range" id="slider-${name}" min="${min}" max="${max}" step="${step}" value="${value}" oninput="syncSlider('${name}',this.value)">
+    <input type="number" id="num-${name}" value="${value}" step="${step}" onchange="syncSlider('${name}',this.value)"></div>`;
+}
+
+function syncSlider(name, value) {
+  const nv=parseFloat(value); if(isNaN(nv))return;
+  const s=document.getElementById('slider-'+name), ni=document.getElementById('num-'+name);
+  if(s&&document.activeElement!==s) s.value=nv;
+  if(ni&&document.activeElement!==ni) ni.value=nv;
+}
+
+function renderPresets() {
+  const container=document.getElementById('preset-btns'); container.innerHTML='';
+  Object.entries(PRESETS).forEach(([name,vals])=>{
+    const btn=document.createElement('div'); btn.className='preset-btn'; btn.textContent=name;
+    btn.onclick=()=>{ applyPreset(vals); };
+    container.appendChild(btn);
+  });
+}
+
+function applyPreset(vals) {
+  if (activeParamIndex>=paramSets.length) return;
+  ['v1','v2','R_yaw','R_pitch','R_distance','angular_velocity_threshold'].forEach(k=>{
+    const key = k === 'angular_velocity_threshold' ? 'threshold' : k;
+    const v = vals[key];
+    if (v !== undefined) {
+      const s=document.getElementById('slider-'+k), ni=document.getElementById('num-'+k);
+      if(s) s.value=v; if(ni) ni.value=v;
+    }
+  });
+}
+
+function sendParams() {
+  if (!ws||ws.readyState!==WebSocket.OPEN) { alert('Not connected!'); return; }
+  const ps=paramSets[activeParamIndex];
+  const gv=(n,f)=>{ const el=document.getElementById('num-'+n); return el?parseFloat(el.value):f; };
+  ws.send(JSON.stringify({
+    cmd:'update_param', index:activeParamIndex,
+    v1:gv('v1',ps.v1), v2:gv('v2',ps.v2),
+    R_yaw:gv('R_yaw',ps.R_yaw), R_pitch:gv('R_pitch',ps.R_pitch),
+    R_distance:gv('R_distance',ps.R_distance),
+    angular_velocity_threshold:gv('angular_velocity_threshold',ps.angular_velocity_threshold)
+  }));
+  console.log('Params sent');
+}
+
+setInterval(()=>{
+  const now=Date.now(); fps=frameCount/((now-lastFpsTime)/1000); frameCount=0; lastFpsTime=now;
+  document.getElementById('fps-counter').textContent=fps.toFixed(1)+' fps';
+},1000);
+document.getElementById('quality').addEventListener('input',function(){ document.getElementById('q-val').textContent=this.value; });
+connect();
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+enemy_color: "red"
+#enemy_color: "blue"
+
+#####-----神经网络参数-----#####
+yolo_name: yolov5
+classify_model: assets/tiny_resnet.onnx
+yolo11_model_path: assets/yolo11.xml
+yolov8_model_path: assets/yolov8.xml
+yolov5_model_path: assets/yolov5.xml
+device: GPU
+min_confidence: 0.8
+use_traditional: false
+
+#####-----web_debug_display-----#####
+debug_display:
+  window:
+    enabled: true
+    auto_detect: false
+  web:
+    enabled: false
+    port: 8080
+
+#####-----debug_bus-----#####
+debug_bus:
+  sinks:
+    web:
+      enabled: false
+      port: 8080
+      bind: "0.0.0.0"
+
+
+#####-----ROI-----#####
+roi: 
+  x: 420
+  y: 50
+  width: 600
+  height: 600
+
+use_roi: false
+
+#####-----plotter参数-----#####
+plotter:
+  host: "10.122.203.112"
+  port: 9870
+
+#####-----传统方法参数-----#####
+threshold: 150
+max_angle_error: 45 # degree
+min_lightbar_ratio: 1.5
+max_lightbar_ratio: 20
+min_lightbar_length: 8
+min_armor_ratio: 1
+max_armor_ratio: 5
+max_side_ratio: 1.5
+max_rectangular_error: 25 # degree
+min_confidence: 0.8
+
+#####-----tracker参数-----#####
+min_detect_count: 5
+max_temp_lost_count: 15
+outpost_max_temp_lost_count: 75
+
+#####-----aimer参数-----#####
+yaw_offset: 0.5 # degree -2.5
+pitch_offset: -1.5 # degree 2
+comming_angle: 55 # degree
+leaving_angle: 25 # degree
+decision_speed: 7 # rad/s
+high_speed_delay_time: 0.085 # s
+low_speed_delay_time: 0.085 # s
+
+#####-----shooter参数-----#####
+first_tolerance: 2.5 # 近距离射击容差，degree
+second_tolerance: 2 # 远距离射击容差，degree
+judge_distance: 2 #距离判断阈值
+auto_fire: true # 是否由自瞄控制射击
+
+camera_name: "hikrobot"
+exposure_ms: 2
+gain: 16.0
+vid_pid: "2bdf:0001"
+
+# camera_name: "mindvision"
+# exposure_ms: 2.0
+# gamma: 0.5
+# vid_pid: "f622:d132"
+
+#  1  0  0
+#  0  1  0
+#  0  0  1
+
+R_gimbal2imubody: [0, 1, 0, -1, 0, 0, 0, 0, -1]
+
+# # 重投影误差: 0.214px
+camera_matrix: [2348.28807, 0.00000, 715.8871,  0.000000, 2343.20121, 549.08769, 0.00000, 0.00000, 1.00000]
+distort_coeffs: [-0.113753, 0.476220, -0.000367, 0.000390, 0.000000]
+
+# 相机同理想情况的偏角: yaw0.50 pitch0.89 roll-4.09 degree
+# 标定板到世界坐标系原点的水平距离: 1.84 m
+# 标定板同竖直摆放时的偏角: yaw21.15 pitch5.80 roll-95.22 degree
+R_camera2gimbal: [-0.0097593608923142363, 0.014906909346876499, 0.9998412568646573, -0.99740747610409053, -0.07143632359391644, -0.0086705411049835795, 0.0712957325976913, -0.99733376345389468, 0.015565435690953719]
+t_camera2gimbal: [0.02663681156986614, -0.00018454730148609257, 0.10511518672308437]
+
+
+#####-----cboard参数-----#####
+quaternion_canid: 0x100
+bullet_speed_canid: 0x101
+send_canid: 0xff
+can_interface: "can0"
+
+#####-----gimbal参数-----#####
+com_port: "/dev/gimbal"
+yaw_kp: 0
+yaw_kd: 0
+pitch_kp: 0
+pitch_kd: 0
+
+
+#####-----planner-----#####
+fire_thresh: 0.003
+
+max_yaw_acc: 50
+Q_yaw: [9e6, 0]
+R_yaw: [1]
+
+max_pitch_acc: 100
+Q_pitch: [9e6,0]
+R_pitch: [1]
+
+#####-----buff_detector参数-----#####
+model: "assets/yolo11_buff_int8.xml"
+
+#####-----buff_aimer参数-----#####
+fire_gap_time: 0.520   # s
+predict_time: 0.100     # s
+
+
+
+
+#####-----滤波器参数集（基于角速度自动切换）-----#####
+# 角速度阈值从小到大排列，当前 |w| < threshold 时使用该参数集
+# v1: 位置过程噪声（越大跟踪越快但越抖）
+# v2: 角度过程噪声（越大角度响应越快）
+# R_yaw/R_pitch/R_distance: 观测噪声（越小越信任观测值）
+filter_param_sets:
+  - name: "slow"
+    v1: 10.0
+    v2: 0.5
+    R_yaw: 0.004
+    R_pitch: 0.004
+    R_distance: 0.09
+    angular_velocity_threshold: 2.0   # |w| < 2 rad/s 时使用此参数集（慢速/旋转目标）
+  - name: "normal"
+    v1: 100.0
+    v2: 400.0
+    R_yaw: 0.004
+    R_pitch: 0.004
+    R_distance: 0.09
+    angular_velocity_threshold: 8.0   # 2 <= |w| < 8 时使用（常规目标）
+  - name: "fast"
+    v1: 500.0
+    v2: 1000.0
+    R_yaw: 0.002
+    R_pitch: 0.002
+    R_distance: 0.05
+    angular_velocity_threshold: 999.0 # |w| >= 8 时使用（快速平移目标）

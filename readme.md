@@ -142,7 +142,7 @@ IMU型号：使用C板内置BMI088作为IMU\
 ![软件架构](https://github.com/user-attachments/assets/2603a3b3-ae1d-4fa8-afbb-490efde30d77)
 图3.2 软件架构
 
-### 3.5 文件结构
+### 1.5 文件结构
 ```
 spr_vision_26
 ├── assets                          // 包含demo素材、网络权重等
@@ -217,11 +217,11 @@ spr_vision_26
     └── ...
 ```    
 
-### 3.6 调试工具 (debug)
+### 2.1调试工具 (debug)
 
 本框架提供了一套完整的调试工具链，位于 `debug/` 目录下，包括 **Web 可视化调试器**、**Debug 事件总线**、**动态参数调节器** 三个组件。支持运行时实时查看检测结果、调节 EKF 参数，无需重新编译。
 
-#### 3.6.1 WebDebugger — 浏览器可视化调试
+#### 2.1.1 WebDebugger — 浏览器可视化调试
 
 通过 HTTP + WebSocket 在浏览器中实时展示每帧检测结果。
 
@@ -268,7 +268,7 @@ Web 界面功能：
 - 右侧面板展示帧率、延迟、检测数量等统计信息
 - 可折叠卡片展示每条检测目标的颜色、编号、置信度
 
-#### 3.6.2 DebugBus — 调试事件总线
+#### 2.1.2 DebugBus — 调试事件总线
 
 `DebugBus` 是单例模式的事件总线，将主循环中的调试数据分发给多个注册的 `IDebugSink`。支持通过 YAML 配置动态添加输出后端。
 
@@ -302,7 +302,7 @@ data.latency_ms = latency;
 bus.post(data);
 ```
 
-#### 3.6.3 ParamTuner — 动态参数调节
+#### 2.1.3 ParamTuner — 动态参数调节
 
 `ParamTuner` 管理多组 EKF 滤波器参数，支持运行时通过 WebSocket 动态切换和调节参数，无需重新编译。
 
@@ -326,18 +326,18 @@ ekf_param_sets:
 
 系统根据当前目标角速度自动选择合适的参数集，也可通过 Web Debugger 界面手动调节。
 
-### 3.7 PlotJuggler 使用
+### 2.2 PlotJuggler 使用
 
 PlotJuggler 是官方推荐的实时曲线绘制工具，用于可视化 EKF 状态、预测轨迹、云台响应等数据。本项目通过 `tools::Plotter` 工具类以 UDP 协议向 PlotJuggler 发送 JSON 格式数据。
 
-#### 3.7.1 安装 PlotJuggler
+#### 2.2.1 安装 PlotJuggler
 
 ```bash
 sudo apt install plotjuggler
 # 或从源码编译：https://github.com/facontidavide/PlotJuggler
 ```
 
-#### 3.7.2 启用方式
+#### 2.2.2 启用方式
 
 `Plotter` 默认向 `127.0.0.1:9870` 发送 UDP 数据，用法如下：
 
@@ -365,7 +365,7 @@ plotter.plot(data);
 - `sentry.cpp` / `sentry_multithread.cpp`
 - `uav.cpp` / `uav_debug.cpp`
 
-#### 3.7.3 PlotJuggler 使用步骤
+#### 2.2.3 PlotJuggler 使用步骤
 
 1. **启动 PlotJuggler**：
    ```bash

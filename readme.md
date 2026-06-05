@@ -217,11 +217,11 @@ spr_vision_26
     └── ...
 ```    
 
-### 2.1调试工具 (debug)
+## 2 调试工具
 
 本框架提供了一套完整的调试工具链，位于 `debug/` 目录下，包括 **Web 可视化调试器**、**Debug 事件总线**、**动态参数调节器** 三个组件。支持运行时实时查看检测结果、调节 EKF 参数，无需重新编译。
 
-#### 2.1.1 WebDebugger — 浏览器可视化调试
+### 2.1 WebDebugger — 浏览器可视化调试
 
 通过 HTTP + WebSocket 在浏览器中实时展示每帧检测结果。
 
@@ -263,12 +263,12 @@ void push_debug(debug::WebDebugger & dbg,
 }
 ```
 
-Web 界面功能：
+#### 2.1.1 Web 界面功能
 - 显示相机实时画面，叠加检测框与重投影点
 - 右侧面板展示帧率、延迟、检测数量等统计信息
 - 可折叠卡片展示每条检测目标的颜色、编号、置信度
 
-#### 2.1.2 DebugBus — 调试事件总线
+### 2.2 DebugBus — 调试事件总线
 
 `DebugBus` 是单例模式的事件总线，将主循环中的调试数据分发给多个注册的 `IDebugSink`。支持通过 YAML 配置动态添加输出后端。
 
@@ -302,7 +302,7 @@ data.latency_ms = latency;
 bus.post(data);
 ```
 
-#### 2.1.3 ParamTuner — 动态参数调节
+### 2.3 ParamTuner — 动态参数调节
 
 `ParamTuner` 管理多组 EKF 滤波器参数，支持运行时通过 WebSocket 动态切换和调节参数，无需重新编译。
 
@@ -326,18 +326,18 @@ ekf_param_sets:
 
 系统根据当前目标角速度自动选择合适的参数集，也可通过 Web Debugger 界面手动调节。
 
-### 2.2 PlotJuggler 使用
+### 2.4 PlotJuggler 使用
 
 PlotJuggler 是官方推荐的实时曲线绘制工具，用于可视化 EKF 状态、预测轨迹、云台响应等数据。本项目通过 `tools::Plotter` 工具类以 UDP 协议向 PlotJuggler 发送 JSON 格式数据。
 
-#### 2.2.1 安装 PlotJuggler
+#### 2.4.1 安装 PlotJuggler
 
 ```bash
 sudo apt install plotjuggler
 # 或从源码编译：https://github.com/facontidavide/PlotJuggler
 ```
 
-#### 2.2.2 启用方式
+#### 2.4.2 启用方式
 
 `Plotter` 默认向 `127.0.0.1:9870` 发送 UDP 数据，用法如下：
 
@@ -365,7 +365,7 @@ plotter.plot(data);
 - `sentry.cpp` / `sentry_multithread.cpp`
 - `uav.cpp` / `uav_debug.cpp`
 
-#### 2.2.3 PlotJuggler 使用步骤
+#### 2.4.3 PlotJuggler 使用步骤
 
 1. **启动 PlotJuggler**：
    ```bash
@@ -391,5 +391,302 @@ plotter.plot(data);
    - 对比预测轨迹与实际目标运动
    - 监控打符时的能量机关旋转速度预测
 
+## 3 配置文件详解
+
+`configs/` 目录下的 YAML 文件是项目唯一的配置入口，每个兵种/用途对应一个文件（如 `standard4.yaml`、`demo.yaml`）。各字段说明如下：
+
+| 配置段 | 关键字段 | 说明 |
+|--------|----------|------|
+| 顶层 | `enemy_color` | 敌方颜色：`red` / `blue` |
+| **神经网络** | `yolo_name` | 使用的模型：`yolov5` / `yolov8` / `yolo11` |
+| | `classify_model` | 数字分类模型路径（如 `tiny_resnet.onnx`） |
+| | `yolo*_model_path` | 各版本 YOLO 权重路径 |
+| | `device` | 推理设备：`CPU` / `GPU` |
+| | `min_confidence` | 检测最小置信度阈值 |
+| | `use_traditional` | 是否启用传统视觉方法作为 fallback |
+| **ROI** | `x, y, width, height` | 检测区域（感兴趣区域），减小搜索范围提升帧率 |
+| **USB 相机** | `image_width/height` | 分辨率，默认 1920×1080 |
+| | `fov_h / fov_v` | 水平/垂直视场角（度） |
+| | `usb_exposure` | 曝光时间（1-80000），日光 250，夜间可调大 |
+| | `usb_gamma` / `usb_gain` | 伽马值 / 增益 |
+| **工业相机** | `camera_name` | `mindvision` / `hikrobot` |
+| | `exposure_ms` | 曝光时间（毫秒） |
+| | `vid_pid` | USB 设备 VID:PID |
+| **传统视觉** | `threshold` 等 | 灯条/装甲板提取参数（二值化阈值、长宽比约束等） |
+| **CAN 通信** | `can_interface` | CAN 接口名：`can0` / `can1` |
+| | `*_canid` | 各数据项的 CAN ID |
+| **Tracker** | `min_detect_count` | 确认目标所需最少检测帧数 |
+| | `max_temp_lost_count` | 目标丢失后保留跟踪的最大帧数 |
+| **Aimer** | `yaw_offset` / `pitch_offset` | 弹道补偿角度（度） |
+| | `comming_angle` / `leaving_angle` | 接敌/离敌角度阈值 |
+| **Shooter** | `auto_fire` | 是否启用自瞄自动射击 |
+| | `first_tolerance` / `second_tolerance` | 近/远距离射击容差 |
+| **标定参数** | `camera_matrix` / `distort_coeffs` | 相机内参和畸变系数 |
+| | `R_camera2gimbal` / `t_camera2gimbal` | 相机到云台的旋转/平移矩阵 |
+| | `R_gimbal2imubody` | 云台到 IMU 机体的旋转矩阵 |
+
+**提示**：修改配置文件后无需重新编译，程序会在启动时读取。
+
+## 4 核心模块详解
+
+### 4.1 auto_aim — 自瞄模块
+
+自瞄模块位于 `tasks/auto_aim/`，是整个系统的核心。各组件职责如下：
+
+| 组件 | 文件 | 功能 |
+|------|------|------|
+| `Armor` | `armor.hpp` | 装甲板数据结构，定义颜色枚举（红/蓝/灭/紫）、类型（大/小）、编号（1-5/哨兵/前哨站/基地） |
+| `Detector` | `detector.cpp` | 检测器：先尝试 YOLO 推理，若失败或置信度不足则回退到传统视觉方法 |
+| `Classifier` | `classifier.cpp` | 数字分类器：使用 `tiny_resnet.onnx` 对装甲板 ROI 进行数字识别 |
+| `Solver` | `solver.cpp` | 解算器：PnP 解算装甲板在三维空间中的位置，含重投影功能 |
+| `Target` | `target.cpp` | 目标状态：封装目标的位置、速度、角速度等运动状态 |
+| `Tracker` | `tracker.cpp` | 跟踪器：多目标跟踪，维持目标 ID 一致性，处理丢失与重识别 |
+| `Aimer` | `aimer.cpp` | 决策器：选择最优目标，计算瞄准角度，含弹道补偿 |
+| `Shooter` | `shooter.cpp` | 射击控制器：根据距离与容差判断开火时机 |
+| `Voter` | `voter.cpp` | 投票器：多模型/多帧结果融合，提高检测稳定性 |
+| `YOLO` | `yolo*.cpp` | YOLO 推理封装：支持 v5 / v8 / v11，CPU / GPU 推理 |
+| `planner/tinympc/` | — | MPC 轨迹规划器：预测目标运动，计算最优瞄准点 |
+
+**调用流程**（每帧）：
+```
+相机图像 → Detector.detect() → 得到 Armor 列表
+  → Classifier 识别数字
+  → Solver.solve() PnP 解算位置
+  → Tracker 跟踪/匹配目标
+  → Aimer 选择目标 + 弹道补偿
+  → Shooter 判断开火 → 发送云台指令
+```
+
+### 4.2 auto_buff — 打符模块
+
+位于 `tasks/auto_buff/`，用于能量机关（大符/小符）的识别与打击。
+
+| 组件 | 功能 |
+|------|------|
+| `BuffDetector` | 识别能量机关扇叶/旋转中心，支持 YOLO11 专用模型 |
+| `BuffSolver` | 解算能量机关在三维空间中的位置与姿态 |
+| `BuffAimer` | 预测扇叶旋转轨迹，计算提前量 |
+| `BuffPredict` | 基于 RANSAC 正弦拟合的旋转速度预测 |
+
+**特殊之处**：能量机关是旋转的，因此需要预测其旋转速度（角速度），并计算合适的提前瞄准点。预测器基于历史角速度数据使用 RANSAC 拟合正弦曲线来预测未来位置。
+
+### 4.3 omniperception — 全向感知（哨兵专用）
+
+位于 `tasks/omniperception/`，用于哨兵机器人的多方向感知与决策。
+
+| 组件 | 功能 |
+|------|------|
+| `Perceptron` | 多方向感知融合，处理多个相机的检测结果 |
+| `Decider` | 决策逻辑：根据当前目标分布选择最优攻击目标 |
+| `Detection` | 统一的检测结果数据结构 |
+
+### 4.4 IO — 硬件抽象层
+
+`io/` 目录封装了所有硬件接口，上层代码不直接操作硬件。
+
+| 子目录/文件 | 功能 |
+|------|------|
+| `cboard.hpp / cboard.cpp` | 下位机（C 型开发板）通信：接收 IMU 四元数、弹速、模式切换信号；发送云台控制指令（yaw/pitch/shoot） |
+| `socketcan.hpp` | SocketCAN 封装，提供 CAN 总线读写接口 |
+| `camera.hpp / camera.cpp` | 相机基类，定义统一接口 |
+| `hikrobot/` | 海康机器人工业相机驱动 |
+| `mindvision/` | 迈德威视工业相机驱动 |
+| `usbcamera/` | USB 免驱相机驱动 |
+| `gimbal/` | 云台控制协议封装 |
+| `dm_imu/` | 达妙 IMU 驱动 |
+| `serial/` | 串口通信封装 |
+| `ros2/` | ROS2 集成（可选），用于哨兵多机协同 |
+
+**通信协议（CBoard → 视觉 → CBoard）**：
+```
+下位机 → CAN → 视觉:
+  - 0x01: IMU 四元数 (w, x, y, z)
+  - 0x101: 弹速
+  - 模式指令: idle / auto_aim / small_buff / big_buff
+
+视觉 → CAN → 下位机:
+  - 0xFF: 云台控制 (yaw, pitch, shoot_flag)
+```
+
+### 4.5 tools — 工具层
+
+`tools/` 提供通用工具函数，减少重复造轮子。
+
+| 文件 | 功能 |
+|------|------|
+| `pid.cpp/hpp` | PID 控制器（位置式/增量式） |
+| `extended_kalman_filter.cpp/hpp` | 扩展卡尔曼滤波器（EKF），用于目标状态估计 |
+| `math_tools.cpp/hpp` | 数学工具：坐标系转换、角度归一化、插值等 |
+| `img_tools.cpp/hpp` | 图像处理：绘制检测框、颜色转换、透视变换等 |
+| `trajectory.cpp` | 弹道模型：计算子弹飞行时间与下落量 |
+| `crc.cpp/hpp` | CRC 校验 |
+| `logger.cpp/hpp` | 日志封装（基于 spdlog） |
+| `exiter.cpp/hpp` | 优雅退出检测（按键检测） |
+| `plotter.cpp/hpp` | PlotJuggler UDP 数据推送 |
+| `recorder.cpp/hpp` | 视频/数据录制 |
+| `ransac_sine_fitter.cpp/hpp` | RANSAC 正弦曲线拟合（用于打符预测） |
+| `thread_pool.hpp` | 线程池 |
+| `thread_safe_queue.hpp` | 线程安全队列 |
+
+## 5 开发指南
+
+### 5.1 如何添加新兵种
+
+1. 在 `configs/` 下创建对应 YAML 配置文件（参考 `example.yaml`）
+2. 在 `src/` 下创建新的 main 函数（参考 `standard.cpp` 的结构）
+3. 在顶层 `CMakeLists.txt` 中添加可执行目标并链接所需库
+4. 如有特殊硬件需求，在 `io/` 中添加对应驱动
+
+main 函数标准结构：
+```cpp
+int main(int argc, char *argv[]) {
+  // 1. 解析命令行参数（配置文件路径）
+  // 2. 读取 YAML 配置
+  // 3. 初始化相机、CBoard 通信
+  // 4. 创建 Detector / Solver / Tracker / Aimer / Shooter
+  // 5. 主循环：采集图像 → 检测 → 解算 → 跟踪 → 决策 → 发送
+  // 6. 退出清理
+}
+```
+
+### 5.2 如何添加新功能组
+
+框架设计支持将新功能拆解为独立模块加入 `tasks/`：
+
+1. 在 `tasks/` 下新建目录（如 `tasks/my_feature/`）
+2. 实现功能类，遵循 `namespace my_feature` 命名空间
+3. 在该目录下创建 `CMakeLists.txt`，编译为静态库
+4. 在顶层 `CMakeLists.txt` 中添加 `add_subdirectory(tasks/my_feature)`
+5. 在 main 函数中根据电控模式信号选择执行对应功能组
+
+### 5.3 代码规范
+
+- **语言标准**：C++17
+- **命名规范**：
+  - 类名/枚举：PascalCase（如 `ArmorType`、`Detector`）
+  - 变量/函数：snake_case（如 `min_confidence`、`detect()`）
+  - 常量/枚举值：snake_case（如 `red`、`big`）
+  - 文件：snake_case（如 `auto_aim`、`extended_kalman_filter`）
+- **命名空间**：每个模块使用独立 namespace（`auto_aim`、`auto_buff`、`debug`、`tools`）
+- **头文件**：使用 `#ifndef` 宏防止重复包含
+- **注释**：关键算法逻辑、配置文件字段含义必须加注释
+
+### 5.4 模型训练与部署
+
+1. **训练**：使用 RoboFlow / YOLO 训练流程，导出为 OpenVINO 格式（.xml + .bin）
+2. **数字分类**：训练 `tiny_resnet.onnx` 用于装甲板数字识别（0-8 共 9 类）
+3. **部署**：将模型文件放入 `assets/` 目录，更新配置文件的 `yolo*_model_path` 字段
+4. **GPU 推理**：在 Intel NUC 上使用 GPU 推理需安装 Intel GPU 驱动（见 1.2 节第 6 步）
+
+### 5.5 多线程架构
+
+部分兵种（`mt_standard`、`sentry_multithread`）使用了多线程架构：
+
+- **相机线程**：仅负责采集图像和 IMU 数据，放入线程安全队列
+- **检测线程**：从队列取图像运行 YOLO 推理（耗时最长，独立线程避免阻塞主循环）
+- **主线程**：处理解算、跟踪、决策和通信
+
+如需使用多线程，参考 `multithread/` 目录下的 `mt_detector` 实现。
+
+## 6 标定流程
+
+所有标定程序位于 `calibration/`，编译后生成独立可执行文件。
+
+### 6.1 相机内参标定
+
+```bash
+# 1. 采集标定板图像（打印棋盘格，从不同角度拍摄）
+./build/capture assets/img_with_q configs/calibration.yaml
+
+# 2. 标定相机内参
+./build/calibrate_camera assets/img_with_q configs/calibration.yaml
+```
+
+标定结果会输出相机矩阵和畸变系数，更新到兵种配置文件的 `camera_matrix` 和 `distort_coeffs` 字段。
+
+### 6.2 手眼标定
+
+手眼标定用于确定相机坐标系到云台坐标系的外参（旋转矩阵 R + 平移向量 t）。
+
+```bash
+# 1. 采集带云台姿态的标定数据
+./build/capture assets/img_with_q configs/calibration.yaml
+
+# 2. 标准手眼标定
+./build/calibrate_handeye assets/img_with_q configs/calibration.yaml
+
+# 3. 含标定板世界坐标的手眼标定（精度更高）
+./build/calibrate_robotworld_handeye assets/img_with_q configs/calibration.yaml
+```
+
+标定结果写入配置文件的 `R_camera2gimbal` 和 `t_camera2gimbal` 字段。
+
+### 6.3 数据采集辅助
+
+```bash
+# 将长视频按帧切分为图片
+./build/split_video <video_path> <output_folder>
+```
+
+### 6.4 标定配置文件
+
+标定参数在 `configs/calibration.yaml` 中配置：
+
+```yaml
+pattern_size: [9, 6]          # 棋盘格内角点数量 (宽, 高)
+center_distance: 0.025        # 棋盘格格子边长（米）
+```
+
+## 7 Docker 使用
+
+项目提供 Docker 支持，用于 CI/CD 和快速搭建编译环境。
+
+### 7.1 编译
+
+```bash
+# 仅编译（用于验证代码可编译）
+docker compose up spr-vision-build
+
+# 编译并运行 demo
+docker compose up spr-vision
+```
+
+### 7.2 手动构建
+
+```bash
+# 指定平台构建（Intel NUC 使用 linux/amd64）
+docker build --platform linux/amd64 -t spr-vision:latest .
+
+# Apple Silicon Mac 上会自动使用 QEMU 模拟，编译速度较慢
+```
+
+### 7.3 注意事项
+
+- Docker 镜像仅包含编译环境和 CPU 推理支持
+- 如需 GPU 推理，需在宿主机上原生编译（Intel NUC）
+- Apple Silicon Mac 构建的镜像无法在 x86_64 机器上运行
+
+## 8 常见问题 (FAQ)
+
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| 编译时报 `OpenVINO_DIR` 未设置 | OpenVINO 未安装或路径不正确 | `export OpenVINO_DIR=/opt/intel/openvino_2024.6.0/runtime/cmake` |
+| `sudo: dpkg: 未找到命令` | Docker 内缺少 dpkg | 使用 Docker 编译而非直接运行 shell 命令 |
+| 相机打开失败 | 权限不足 / USB 端口被占用 | `sudo usermod -a -G dialout $USER`，重新登录；检查 `ls /dev/video*` |
+| `can0: 未找到设备` | CAN 适配器未连接或驱动未加载 | 检查 USB2CAN 是否插入；`sudo modprobe can`；查看 `dmesg` |
+| 自瞄不准 | 标定参数不准确 / 弹道补偿未调好 | 重新标定相机 → 手眼标定 → 调整 `yaw_offset` / `pitch_offset` |
+| 帧率低 | 推理耗时过长 / 曝光时间太长 | 启用 GPU 推理；缩小 ROI；调低分辨率；使用多线程架构 |
+| 程序启动后闪退 | 配置文件路径错误或模型文件缺失 | 确认 `assets/` 下有对应的 `.xml/.onnx` 文件；检查配置文件路径 |
+| 串口 `gimbal` 设备不存在 | udev 规则未生效 | 重新执行 `sudo udevadm control --reload-rules && sudo udevadm trigger`；确认 VID/PID/序列号正确 |
+
 ## 项目成员
-唐京 李家乐
+
+**SPR 战队 2026 赛季视觉组**
+- 唐京
+- 李家乐
+
+**特别感谢**
+- [TongjiSuperPower/sp_vision_25](https://github.com/TongjiSuperPower/sp_vision_25) — 提供了优秀的视觉框架参考
+- [SPR-Algorithm/SPR-Vision-2026](https://github.com/SPR-Algorithm/SPR-Vision-2026) — 赛季前期探索与积累
+- Alan Day. 【RM2024赛季-识别模型】深圳大学-RobotPilots[EB/OL]. RoboMaster论坛. https://bbs.robomaster.com/article/54091, 2025.
+- 陈君. rm_vision[EB/OL]. GitHub. https://github.com/chenjunnn/rm_vision, 2023.

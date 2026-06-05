@@ -52,7 +52,6 @@ private:
   int img_height_;
   double fov_h_, new_fov_h_;
   double fov_v_, new_fov_v_;
-  double back_yaw_offset_, back_fov_h_, back_fov_v_;
   int mode_;
   int count_;
 

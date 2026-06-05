@@ -10,15 +10,23 @@
 
 namespace omniperception
 {
-Perceptron::Perceptron(io::Camera * back_camera, const std::string & config_path)
+Perceptron::Perceptron(
+  io::USBCamera * usbcam1, io::USBCamera * usbcam2, io::USBCamera * usbcam3,
+  io::USBCamera * usbcam4, const std::string & config_path)
 : detection_queue_(10), decider_(config_path), stop_flag_(false)
 {
   // 初始化 YOLO 模型
-  yolo_parallel_ = std::make_shared<auto_aim::YOLO>(config_path, false);
+  yolo_parallel1_ = std::make_shared<auto_aim::YOLO>(config_path, false);
+  yolo_parallel2_ = std::make_shared<auto_aim::YOLO>(config_path, false);
+  yolo_parallel3_ = std::make_shared<auto_aim::YOLO>(config_path, false);
+  yolo_parallel4_ = std::make_shared<auto_aim::YOLO>(config_path, false);
 
   std::this_thread::sleep_for(std::chrono::seconds(2));
-  // 后向感知相机单独后台推理，主相机仍负责精瞄。
-  threads_.emplace_back([&] { parallel_infer(back_camera, yolo_parallel_); });
+  // 创建四个线程进行并行推理
+  threads_.emplace_back([&] { parallel_infer(usbcam1, yolo_parallel1_); });
+  threads_.emplace_back([&] { parallel_infer(usbcam2, yolo_parallel2_); });
+  threads_.emplace_back([&] { parallel_infer(usbcam3, yolo_parallel3_); });
+  threads_.emplace_back([&] { parallel_infer(usbcam4, yolo_parallel4_); });
 
   tools::logger()->info("Perceptron initialized.");
 }
@@ -56,7 +64,7 @@ std::vector<DetectionResult> Perceptron::get_detection_queue()
 
 // 将并行推理逻辑移动到类成员函数
 void Perceptron::parallel_infer(
-  io::Camera * cam, std::shared_ptr<auto_aim::YOLO> & yolov8_parallel)
+  io::USBCamera * cam, std::shared_ptr<auto_aim::YOLO> & yolov8_parallel)
 {
   if (!cam) {
     tools::logger()->error("Camera pointer is null!");
@@ -80,7 +88,7 @@ void Perceptron::parallel_infer(
 
       auto armors = yolov8_parallel->detect(usb_img);
       if (!armors.empty()) {
-        auto delta_angle = decider_.delta_angle(armors, "back");
+        auto delta_angle = decider_.delta_angle(armors, cam->device_name);
 
         DetectionResult dr;
         dr.armors = std::move(armors);

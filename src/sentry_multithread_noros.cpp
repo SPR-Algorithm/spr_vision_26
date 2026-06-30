@@ -40,7 +40,10 @@ int main(int argc, char * argv[])
 
   io::Gimbal gimbal(config_path);
   io::Camera camera(config_path);
-  io::Camera back_camera("configs/back_mindvision.yaml");
+  io::USBCamera usbcam1("video0", config_path);
+  io::USBCamera usbcam2("video2", config_path);
+  io::USBCamera usbcam3("video4", config_path);
+  io::USBCamera usbcam4("video6", config_path);
 
   auto_aim::YOLO yolo(config_path, false);
   auto_aim::Solver solver(config_path);
@@ -49,7 +52,7 @@ int main(int argc, char * argv[])
   auto_aim::Shooter shooter(config_path);
 
   omniperception::Decider decider(config_path);
-  omniperception::Perceptron perceptron(&back_camera, config_path);
+  omniperception::Perceptron perceptron(&usbcam1, &usbcam2, &usbcam3, &usbcam4, config_path);
 
   omniperception::DetectionResult switch_target;
   cv::Mat img;

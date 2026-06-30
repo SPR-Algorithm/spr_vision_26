@@ -1,44 +1,45 @@
 #ifndef IO__SUBSCRIBE2NAV_HPP
 #define IO__SUBSCRIBE2NAV_HPP
 
+#include <chrono>
+#include <mutex>
+#include <optional>
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp/timer.hpp>
-#include <sp_msgs/msg/detail/autoaim_target_msg__struct.hpp>
 #include <vector>
 
-#include "sp_msgs/msg/autoaim_target_msg.hpp"
-#include "sp_msgs/msg/enemy_status_msg.hpp"
-#include "tools/thread_safe_queue.hpp"
+#include "spr_msgs/msg/autoaim_target_msg.hpp"
+#include "spr_msgs/msg/enemy_status_msg.hpp"
 
 namespace io
 {
-class Subscribe2Nav : public rclcpp::Node
+class Subscribe2Nav
 {
 public:
-  Subscribe2Nav();
+  explicit Subscribe2Nav(rclcpp::Node::SharedPtr node);
 
   ~Subscribe2Nav();
-
-  void start();
 
   std::vector<int8_t> subscribe_enemy_status();
   std::vector<int8_t> subscribe_autoaim_target();
 
 private:
-  void enemy_status_callback(const sp_msgs::msg::EnemyStatusMsg::SharedPtr msg);
-  void autoaim_target_callback(const sp_msgs::msg::AutoaimTargetMsg::SharedPtr msg);
+  void enemy_status_callback(const spr_msgs::msg::EnemyStatusMsg::SharedPtr msg);
+  void autoaim_target_callback(const spr_msgs::msg::AutoaimTargetMsg::SharedPtr msg);
 
-  int enemy_status_counter_;
-  int autoaim_target_counter_;
+  bool is_cache_fresh(const std::optional<std::chrono::steady_clock::time_point> & updated_at) const;
 
-  rclcpp::TimerBase::SharedPtr enemy_status_timer_;
-  rclcpp::TimerBase::SharedPtr autoaim_target_timer_;
+  static constexpr std::chrono::milliseconds kCacheTimeout{1500};
 
-  rclcpp::Subscription<sp_msgs::msg::EnemyStatusMsg>::SharedPtr enemy_status_subscription_;
-  rclcpp::Subscription<sp_msgs::msg::AutoaimTargetMsg>::SharedPtr autoaim_target_subscription_;
+  rclcpp::Node::SharedPtr node_;
 
-  tools::ThreadSafeQueue<sp_msgs::msg::EnemyStatusMsg> enemy_statue_queue_;
-  tools::ThreadSafeQueue<sp_msgs::msg::AutoaimTargetMsg> autoaim_target_queue_;
+  rclcpp::Subscription<spr_msgs::msg::EnemyStatusMsg>::SharedPtr enemy_status_subscription_;
+  rclcpp::Subscription<spr_msgs::msg::AutoaimTargetMsg>::SharedPtr autoaim_target_subscription_;
+
+  mutable std::mutex cache_mutex_;
+  std::vector<int8_t> invincible_enemy_ids_;
+  std::vector<int8_t> autoaim_target_ids_;
+  std::optional<std::chrono::steady_clock::time_point> enemy_status_updated_at_;
+  std::optional<std::chrono::steady_clock::time_point> autoaim_target_updated_at_;
 };
 }  // namespace io
 

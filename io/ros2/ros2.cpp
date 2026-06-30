@@ -1,24 +1,49 @@
 #include "ros2.hpp"
+
 namespace io
 {
 ROS2::ROS2()
 {
-  rclcpp::init(0, nullptr);
+  context_ = std::make_shared<rclcpp::Context>();
+  rclcpp::InitOptions init_options;
+  context_->init(0, nullptr, init_options);
 
-  publish2nav_ = std::make_shared<Publish2Nav>();
+  rclcpp::NodeOptions node_options;
+  node_options.context(context_);
+  node_ = std::make_shared<rclcpp::Node>("spr_vision_nav_interface", node_options);
 
-  subscribe2nav_ = std::make_shared<Subscribe2Nav>();
+  publish2nav_ = std::make_shared<Publish2Nav>(node_);
+  subscribe2nav_ = std::make_shared<Subscribe2Nav>(node_);
 
-  publish_spin_thread_ = std::make_unique<std::thread>([this]() { publish2nav_->start(); });
+  rclcpp::ExecutorOptions executor_options;
+  executor_options.context = context_;
+  executor_ = std::make_unique<rclcpp::executors::SingleThreadedExecutor>(executor_options);
+  executor_->add_node(node_);
 
-  subscribe_spin_thread_ = std::make_unique<std::thread>([this]() { subscribe2nav_->start(); });
+  spin_thread_ = std::make_unique<std::thread>([this]() { executor_->spin(); });
 }
 
 ROS2::~ROS2()
 {
-  rclcpp::shutdown();
-  publish_spin_thread_->join();
-  subscribe_spin_thread_->join();
+  if (executor_) {
+    executor_->cancel();
+  }
+
+  if (spin_thread_ && spin_thread_->joinable()) {
+    spin_thread_->join();
+  }
+
+  if (executor_ && node_) {
+    executor_->remove_node(node_);
+  }
+
+  subscribe2nav_.reset();
+  publish2nav_.reset();
+  node_.reset();
+
+  if (context_ && context_->is_valid()) {
+    context_->shutdown("io::ROS2 destroyed");
+  }
 }
 
 void ROS2::publish(const Eigen::Vector4d & target_pos) { publish2nav_->send_data(target_pos); }

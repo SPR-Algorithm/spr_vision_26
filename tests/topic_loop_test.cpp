@@ -2,6 +2,7 @@
 #include <thread>
 
 #include "io/ros2/ros2.hpp"
+#include "spr_msgs/msg/enemy_status_msg.hpp"
 #include "tools/exiter.hpp"
 #include "tools/logger.hpp"
 
@@ -11,11 +12,11 @@ int main(int argc, char ** argv)
   io::ROS2 ros2;
   rclcpp::Clock clock;
   auto string_publisher =
-    ros2.create_publisher<sp_msgs::msg::EnemyStatusMsg>("temp_node", "enemy_status", 10);
+    ros2.create_publisher<spr_msgs::msg::EnemyStatusMsg>("temp_node", "enemy_status", 10);
 
   int i = 0;
   while (!exiter.exit()) {
-    sp_msgs::msg::EnemyStatusMsg msg;
+    spr_msgs::msg::EnemyStatusMsg msg;
     msg.invincible_enemy_ids = {1, 2, 3};
     msg.timestamp = clock.now();
     string_publisher->publish(msg);

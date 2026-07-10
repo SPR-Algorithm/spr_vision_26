@@ -2,31 +2,24 @@
 #define IO__PBLISH2NAV_HPP
 
 #include <Eigen/Dense>  // For Eigen::Vector3d
-#include <chrono>
-#include <deque>
 #include <memory>
-#include <mutex>
-#include <optional>
-#include <string>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
 namespace io
 {
-class Publish2Nav : public rclcpp::Node
+class Publish2Nav
 {
 public:
-  Publish2Nav();
+  explicit Publish2Nav(rclcpp::Node::SharedPtr node);
 
   ~Publish2Nav();
-
-  void start();
 
   void send_data(const Eigen::Vector4d & data);
 
 private:
-  // ROS2 发布者
+  rclcpp::Node::SharedPtr node_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
 };
 

@@ -1,6 +1,14 @@
 #ifndef IO__ROS2_HPP
 #define IO__ROS2_HPP
 
+#include <memory>
+#include <string>
+#include <thread>
+#include <vector>
+
+#include <rclcpp/executors/single_threaded_executor.hpp>
+#include <rclcpp/rclcpp.hpp>
+
 #include "publish2nav.hpp"
 #include "subscribe2nav.hpp"
 
@@ -23,22 +31,20 @@ public:
   std::shared_ptr<rclcpp::Publisher<T>> create_publisher(
     const std::string & node_name, const std::string & topic_name, size_t queue_size)
   {
-    auto node = std::make_shared<rclcpp::Node>(node_name);
+    (void)node_name;
 
-    auto publisher = node->create_publisher<T>(topic_name, queue_size);
-
-    // 运行一个单独的线程来 spin 这个节点，确保消息可以被正确发布
-    std::thread([node]() { rclcpp::spin(node); }).detach();
-
-    return publisher;
+    return node_->create_publisher<T>(topic_name, queue_size);
   }
 
 private:
+  rclcpp::Context::SharedPtr context_;
+  rclcpp::Node::SharedPtr node_;
+  std::unique_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
+
   std::shared_ptr<Publish2Nav> publish2nav_;
   std::shared_ptr<Subscribe2Nav> subscribe2nav_;
 
-  std::unique_ptr<std::thread> publish_spin_thread_;
-  std::unique_ptr<std::thread> subscribe_spin_thread_;
+  std::unique_ptr<std::thread> spin_thread_;
 };
 
 }  // namespace io

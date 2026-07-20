@@ -356,7 +356,7 @@ rec.log("image/debug", rerun::Image(frame));
 
 ## TODO / Roadmap
 
-以下改进方向源自对 [WUST-RM/awakening](https://github.com/WUST-RM/awakening) 项目的对比分析，按优先级排列。
+以下改进方向.
 
 ### P0 — 高收益、低侵入
 

@@ -2,6 +2,7 @@
 .github/
 build/
 Camera/
+compile_commands.json
 logs/
 assets/img_with_q/
 records/

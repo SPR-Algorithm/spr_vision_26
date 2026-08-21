@@ -200,183 +200,20 @@ spr_vision_26
 | `ransac_sine_fitter.cpp/hpp` | RANSAC 正弦曲线拟合（用于打符预测） |
 
 ---
-
-## TODO / Roadmap
-
-以下改进方向源自对 [WUST-RM/awakening](https://github.com/WUST-RM/awakening) 项目的对比分析，按优先级排列。
-
-### P0 — 高收益、低侵入
-
-#### □ 弹道飞行时间迭代求解
-
-**现状**：`planner.cpp` 中弹道飞行时间只计算一次，未考虑目标预测位置与飞行时间的耦合。
-
-**方案**：参考 awakening `VeryAimer::get_hit()` 的迭代收敛方法，对飞行时间做 3~5 次定长迭代：
-
-```
-fly_time = initial_guess
-for iter in 1..5:
-    target.predict(fly_time)          // 预测 fly_time 后的目标位置
-    fly_time = trajectory.solve(...)  // 重新解算飞行时间
-    if converged: break
-```
-
-**收益**：远距离（>8m）和高横向速度目标命中率显著提升。改动集中在 `planner.cpp`。
-
-#### □ 自动曝光控制
-
-**现状**：无自动曝光，光照变化时图像质量不稳定。
-
-**方案**：参考 awakening `runtime/standard.cpp` 中的 PID-like 曝光策略，在主循环中加入基于图像平均亮度的闭环控制：
-
-```
-exposure -= (mean_brightness - target) * step_gain
-exposure = clamp(exposure, min, max)
-```
-
-**收益**：光照自适应，检测稳定性提升。改动在 `io/camera.hpp` 加接口、主循环中加控制逻辑。
-
-#### □ 自瞄分级 FSM（4 级瞄准策略）
-
-**现状**：只有单一"跟踪目标一块板"模式，目标高速旋转时频繁切换装甲板导致跟踪抖动。
-
-**方案**：参考 awakening `AutoAimFsmController`，引入 4 级 FSM：
-
-```
-SINGLE_ARMOR → WHOLE_CAR_ARMOR → WHOLE_CAR_PAIR → WHOLE_CAR_CENTER
-```
-
-根据目标角速度自动切换：角速度越大→越瞄准整车中心，避免装甲板切换抖动。
-
-**收益**：中远距离和快速旋转目标跟踪更平滑。需新增 `auto_aim/auto_aim_fsm.hpp`，修改 `tracker` 状态机与 `planner` 瞄准点选择。
-
-### P1 — 中等收益、中等侵入
-
-#### □ ES-EKF + SO(3) 流形状态估计
-
-**现状**：标准 EKF 使用欧拉角（11 维状态中的 `angle`），存在奇异性；完全不估计车辆俯仰/横滚。
-
-**方案**：参考 awakening 的 `KalmanHyLib/error_state_extended_kalman_filter.hpp`，将 EKF 改造为 Error-State EKF，在 SO(3) 流形上管理旋转状态：
-
-| 当前（标准 EKF） | 目标（ES-EKF） |
-|:---|:---|
-| 名义状态：`[x,vx,y,vy,z,vz,angle,w,r,l,h]` | 名义状态：`[x,vx,y,vy,z,vz,qw,qx,qy,qz,r,l,h]` |
-| 角度加法有奇异性 | 误差状态 `δθ ∈ so(3)` 无奇异 |
-| 仅偏航旋转 | 完整 3-DoF 旋转估计 |
-
-**收益**：消除高速旋转时的角度奇异问题；对起伏地形上的目标跟踪更精确。核心改动在 `tools/` 下新增 ES-EKF，修改 `target.hpp/cpp`。
-
-#### □ 多后端推理抽象
-
-**现状**：仅支持 OpenVINO，在 Jetson 等设备上无法利用 TensorRT 加速。
-
-**方案**：参考 awakening `utils/net_detector/` 的抽象层，将推理后端接口化：
-
-```cpp
-class NetDetectorBase {
-    virtual OutPut detect(const cv::Mat& img) = 0;
-};
-// 编译期选择后端
-#ifdef USE_TRT
-    detector = make_unique<NetDetectorTRT>(config);
-#elif USE_OPENVINO
-    detector = make_unique<NetDetectorOpenVINO>(config);
-#endif
-```
-
-**收益**：跨平台部署能力增强，TensorRT 在 Jetson 上通常比 OpenVINO 快 20~40%。
-
-### P2 — 低收益或高侵入（按需实施）
-
-#### □ 轻量化流水线并发
-
-**现状**：主循环串行执行，推理和后处理无可重叠。
-
-**方案**：参考 awakening 的 DAG 调度思想，但采用轻量化双缓冲方案：
-
-```
-线程1: Camera → Inference          (生产者)
-线程2: Tracker → Planner → Serial  (消费者)
-```
-
-利用现有的 `ThreadSafeQueue` 连接两个线程。
-
-**收益**：帧率提升 10~30%。改动较大，需重构 `standard_mpc.cpp` 主循环。
-
-#### □ Rerun 可视化集成（可选）
-
-**现状**：Web Debugger 缺少 3D 空间可视化；PlotJuggler 仅支持 2D 曲线。
-
-**方案**：通过 CMake 条件编译集成 [Rerun SDK](https://www.rerun.io/)：
-
-```cpp
-#ifdef USE_RERUN
-rec.log("world/target", rerun::Points3D(armor_positions));
-rec.log("image/debug", rerun::Image(frame));
-#endif
-```
-
-**收益**：强大的 3D 回放调试能力。对 Windows 支持良好，可选增强。
-
----
-
-### 灰度评估总表
-
-| 改进项 | 收益 | 工作量 | 代码侵入 | 风险 |
-|--------|:----:|:------:|:--------:|:----:|
-| 弹道飞行时间迭代 | ★★★★★ | 小 | 小 | 低 |
-| 自动曝光控制 | ★★★★ | 小 | 小 | 低 |
-| 4 级瞄准 FSM | ★★★★ | 中 | 中 | 中 |
-| ES-EKF SO(3) 状态估计 | ★★★★★ | 中 | 中 | 低 |
-| 多后端推理 | ★★★ | 中 | 中 | 低 |
-| 轻量化流水线并发 | ★★★ | 大 | 大 | 高 |
-| Rerun 可视化 | ★★★ | 中 | 小 | 低 |
-
-### 推荐实施路线
-
-```
-阶段一（1~2 周）：
-  ├── ☐ 弹道飞行时间迭代求解
-  ├── ☐ 自动曝光控制
-  └── ☐ 4 级瞄准 FSM
-
-阶段二（2~4 周）：
-  ├── ☐ ES-EKF + SO(3) 状态估计
-  └── ☐ 多后端推理抽象
-
-阶段三（长期）：
-  ├── ☐ 轻量化流水线并发（按需）
-  ├── ☐ Rerun 集成（按需）
-  └── ☐ Daedalus 仿真对接（按需）
-```
-| `thread_pool.hpp` | 线程池 |
-| `thread_safe_queue.hpp` | 线程安全队列 |
-
----
-
 ## TODO / Roadmap
 
 以下改进方向.
+#### 1. imu与相机的的时间同步测试
 
-### P0 — 高收益、低侵入
-
-#### □ 弹道飞行时间迭代求解
+#### 2. 弹道飞行时间迭代求解
 
 **现状**：`planner.cpp` 中弹道飞行时间只计算一次，未考虑目标预测位置与飞行时间的耦合。
 
-**方案**：参考 awakening `VeryAimer::get_hit()` 的迭代收敛方法，对飞行时间做 3~5 次定长迭代：
-
-```
-fly_time = initial_guess
-for iter in 1..5:
-    target.predict(fly_time)          // 预测 fly_time 后的目标位置
-    fly_time = trajectory.solve(...)  // 重新解算飞行时间
-    if converged: break
-```
+**方案**：迭代收敛方法，对飞行时间做 3~5 次定长迭代：
 
 **收益**：远距离（>8m）和高横向速度目标命中率显著提升。改动集中在 `planner.cpp`。
 
-#### □ 自动曝光控制
+#### 3.自动曝光控制
 
 **现状**：无自动曝光，光照变化时图像质量不稳定。
 
@@ -389,11 +226,11 @@ exposure = clamp(exposure, min, max)
 
 **收益**：光照自适应，检测稳定性提升。改动在 `io/camera.hpp` 加接口、主循环中加控制逻辑。
 
-#### □ 自瞄分级 FSM（4 级瞄准策略）
+#### 4.自瞄分级 FSM（4 级瞄准策略）
 
 **现状**：只有单一"跟踪目标一块板"模式，目标高速旋转时频繁切换装甲板导致跟踪抖动。
 
-**方案**：参考 awakening `AutoAimFsmController`，引入 4 级 FSM：
+**方案**：引入 4 级 FSM：
 
 ```
 SINGLE_ARMOR → WHOLE_CAR_ARMOR → WHOLE_CAR_PAIR → WHOLE_CAR_CENTER
@@ -403,9 +240,7 @@ SINGLE_ARMOR → WHOLE_CAR_ARMOR → WHOLE_CAR_PAIR → WHOLE_CAR_CENTER
 
 **收益**：中远距离和快速旋转目标跟踪更平滑。需新增 `auto_aim/auto_aim_fsm.hpp`，修改 `tracker` 状态机与 `planner` 瞄准点选择。
 
-### P1 — 中等收益、中等侵入
-
-#### □ ES-EKF + SO(3) 流形状态估计
+#### 5.ES-EKF + SO(3) 流形状态估计
 
 **现状**：标准 EKF 使用欧拉角（11 维状态中的 `angle`），存在奇异性；完全不估计车辆俯仰/横滚。
 
@@ -419,29 +254,7 @@ SINGLE_ARMOR → WHOLE_CAR_ARMOR → WHOLE_CAR_PAIR → WHOLE_CAR_CENTER
 
 **收益**：消除高速旋转时的角度奇异问题；对起伏地形上的目标跟踪更精确。核心改动在 `tools/` 下新增 ES-EKF，修改 `target.hpp/cpp`。
 
-#### □ 多后端推理抽象
-
-**现状**：仅支持 OpenVINO，在 Jetson 等设备上无法利用 TensorRT 加速。
-
-**方案**：参考 awakening `utils/net_detector/` 的抽象层，将推理后端接口化：
-
-```cpp
-class NetDetectorBase {
-    virtual OutPut detect(const cv::Mat& img) = 0;
-};
-// 编译期选择后端
-#ifdef USE_TRT
-    detector = make_unique<NetDetectorTRT>(config);
-#elif USE_OPENVINO
-    detector = make_unique<NetDetectorOpenVINO>(config);
-#endif
-```
-
-**收益**：跨平台部署能力增强，TensorRT 在 Jetson 上通常比 OpenVINO 快 20~40%。
-
-### P2 — 低收益或高侵入（按需实施）
-
-#### □ 轻量化流水线并发
+#### 6.轻量化流水线并发
 
 **现状**：主循环串行执行，推理和后处理无可重叠。
 
@@ -456,7 +269,7 @@ class NetDetectorBase {
 
 **收益**：帧率提升 10~30%。改动较大，需重构 `standard_mpc.cpp` 主循环。
 
-#### □ Rerun 可视化集成（可选）
+####  7.Rerun 可视化集成（可选）
 
 **现状**：Web Debugger 缺少 3D 空间可视化；PlotJuggler 仅支持 2D 曲线。
 
@@ -485,23 +298,6 @@ rec.log("image/debug", rerun::Image(frame));
 | 轻量化流水线并发 | ★★★ | 大 | 大 | 高 |
 | Rerun 可视化 | ★★★ | 中 | 小 | 低 |
 
-### 推荐实施路线
-
-```
-阶段一（1~2 周）：
-  ├── ☐ 弹道飞行时间迭代求解
-  ├── ☐ 自动曝光控制
-  └── ☐ 4 级瞄准 FSM
-
-阶段二（2~4 周）：
-  ├── ☐ ES-EKF + SO(3) 状态估计
-  └── ☐ 多后端推理抽象
-
-阶段三（长期）：
-  ├── ☐ 轻量化流水线并发（按需）
-  ├── ☐ Rerun 集成（按需）
-  └── ☐ Daedalus 仿真对接（按需）
-```
 
 ## 贡献指南
 
@@ -639,10 +435,6 @@ int main(int argc, char *argv[]) {
 - **主线程**：处理解算、跟踪、决策和通信
 
 如需使用多线程，参考 `multithread/` 目录下的 `mt_detector` 实现。
-
-
-### TODO
-
 
 ## 项目成员
 

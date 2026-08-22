@@ -123,7 +123,7 @@ Q_pitch: [9e6, 0]
 R_pitch: [1]
 
 #####-----buff_detector参数-----#####
-model: "assets/yolo11_buff_int8.xml"
+model: "assets/buffer-0624.xml"
 
 #####-----buff_aimer参数-----#####
 fire_gap_time: 0.700   # s

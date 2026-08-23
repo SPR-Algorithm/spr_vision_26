@@ -2,6 +2,15 @@
 
 namespace auto_buff
 {
+namespace
+{
+bool is_solver_observation_valid(const PowerRune & p)
+{
+  if (p.ypd_in_world[2] <= 0.0) return false;
+  return p.blade_ypd_in_world.norm() > 1e-6;
+}
+}  // namespace
+
 ///voter
 
 Voter::Voter() : clockwise_(0) {}
@@ -54,6 +63,13 @@ void SmallTarget::get_target(
   if (!p.has_value()) {
     unsolvable_ = true;
     lost_cn++;
+    return;
+  }
+
+  if (!is_solver_observation_valid(p.value())) {
+    unsolvable_ = true;
+    lost_cn++;
+    tools::logger()->debug("[Target] solver 观测无效, 跳过本帧");
     return;
   }
 
@@ -184,6 +200,11 @@ void SmallTarget::init(double nowtime, const PowerRune & p)
 
 void SmallTarget::update(double nowtime, const PowerRune & p)
 {
+  // 观测: R_ypd=p.ypd_in_world(R中心), roll=p.ypr_in_world[2], B_ypd=p.blade_ypd_in_world(装甲中心)
+  if (p.type == BIG) {
+    tools::logger()->debug("[Target] cls=big_activated 但使用 SmallTarget");
+  }
+
   // [R_yaw]     angle0
   // [v_R_yaw]
   // [R_pitch]   angle2
@@ -367,6 +388,13 @@ void BigTarget::get_target(
     return;
   }
 
+  if (!is_solver_observation_valid(p.value())) {
+    unsolvable_ = true;
+    lost_cn++;
+    tools::logger()->debug("[Target] solver 观测无效, 跳过本帧");
+    return;
+  }
+
   static std::chrono::steady_clock::time_point start_timestamp = timestamp;
   auto time_gap = tools::delta_time(timestamp, start_timestamp);
 
@@ -526,6 +554,11 @@ void BigTarget::init(double nowtime, const PowerRune & p)
 
 void BigTarget::update(double nowtime, const PowerRune & p)
 {
+  // 观测: R_ypd=p.ypd_in_world(R中心), roll=p.ypr_in_world[2], B_ypd=p.blade_ypd_in_world(装甲中心)
+  if (p.type == SMALL && p.fanblades[0].cls == 1) {
+    tools::logger()->debug("[Target] cls=small_activated 但使用 BigTarget");
+  }
+
   // [R_yaw]
   // [v_R_yaw]
   // [R_pitch]

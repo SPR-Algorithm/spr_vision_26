@@ -1,5 +1,5 @@
-#enemy_color: "red"
-enemy_color: "blue"
+enemy_color: "red"
+#enemy_color: "blue"
 
 #####-----神经网络参数-----#####
 yolo_name: yolov5
@@ -24,7 +24,7 @@ debug_display:
 debug_bus:
   sinks:
     web:
-      enabled: false
+      enabled: true
       port: 8080
       bind: "0.0.0.0"
 

@@ -78,7 +78,9 @@ int main(int argc, char * argv[])
 
     auto power_runes = detector.detect(img);
 
-    solver.solve(power_runes);
+    if (power_runes.has_value() && !solver.solve(power_runes)) {
+      power_runes = std::nullopt;
+    }
 
     target.get_target(power_runes, timestamp);
 

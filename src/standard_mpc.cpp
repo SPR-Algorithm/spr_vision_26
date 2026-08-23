@@ -117,7 +117,9 @@ int main(int argc, char * argv[])
 
       auto power_runes = buff_detector.detect(img);
 
-      buff_solver.solve(power_runes);
+      if (power_runes.has_value() && !buff_solver.solve(power_runes)) {
+        power_runes = std::nullopt;
+      }
 
       auto_aim::Plan buff_plan;
       if (mode.load() == io::GimbalMode::SMALL_BUFF) {

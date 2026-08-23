@@ -25,7 +25,7 @@ const std::string keys =
   "{output o       |                                          | 输出标注视频路径  }"
   "{benchmark b    | false                                    | 基准模式(不显示)  }"
   "{warmup w       | 10                                       | GPU预热帧数       }"
-  "{@video_path    | RuneDetectionModel/video/test_video.avi  | 输入视频路径      }";
+  "{@video_path    | assets/test_video/buff_2.avi  | 输入视频路径      }";
 
 static void draw_fanblade(cv::Mat & img, const auto_buff::FanBlade & blade, bool is_target)
 {

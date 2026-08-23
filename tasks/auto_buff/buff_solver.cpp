@@ -1,6 +1,28 @@
 #include "buff_solver.hpp"
+
+#include "tools/logger.hpp"
+
 namespace auto_buff
 {
+namespace
+{
+constexpr double REPROJ_ERR_THRESHOLD = 15.0;  // px, 5点 PnP 重投影误差上限
+
+double mean_reprojection_error(
+  const std::vector<cv::Point3f> & object_points, const std::vector<cv::Point2f> & image_points,
+  const cv::Mat & camera_matrix, const cv::Mat & distort_coeffs, const cv::Vec3d & rvec,
+  const cv::Vec3d & tvec)
+{
+  std::vector<cv::Point2f> projected;
+  cv::projectPoints(object_points, rvec, tvec, camera_matrix, distort_coeffs, projected);
+  double err = 0.0;
+  for (size_t i = 0; i < image_points.size(); ++i) {
+    err += cv::norm(projected[i] - image_points[i]);
+  }
+  return err / static_cast<double>(image_points.size());
+}
+}  // namespace
+
 cv::Matx33f Solver::rotation_matrix(double angle) const
 {
   return cv::Matx33f(
@@ -40,8 +62,6 @@ Solver::Solver(const std::string & config_path) : R_gimbal2world_(Eigen::Matrix3
   Eigen::Matrix<double, 1, 5> distort_coeffs(distort_coeffs_data.data());
   cv::eigen2cv(camera_matrix, camera_matrix_);
   cv::eigen2cv(distort_coeffs, distort_coeffs_);
-
-  // compute_rotated_points(OBJECT_POINTS);
 }
 
 Eigen::Matrix3d Solver::R_gimbal2world() const { return R_gimbal2world_; }
@@ -52,32 +72,37 @@ void Solver::set_R_gimbal2world(const Eigen::Quaterniond & q)
   R_gimbal2world_ = R_gimbal2imubody_.transpose() * R_imubody2imuabs * R_gimbal2imubody_;
 }
 
-void Solver::solve(std::optional<PowerRune> & ps) const
+bool Solver::solve(std::optional<PowerRune> & ps) const
 {
-  if (!ps.has_value()) return;
-  PowerRune & p = ps.value();
-  // std::vector<cv::Point2f> image_points;
-  // std::vector<cv::Point3f> object_points;
-  // int i = 0;
-  // for (auto & fanblade : p.fanblades) {
-  //   if (fanblade.type != _unlight) {
-  //     image_points.insert(image_points.end(), fanblade.points.begin(), fanblade.points.end());
-  //     image_points.emplace_back(fanblade.center);
-  //     object_points.insert(object_points.end(), OBJECT_POINTS[i].begin(), OBJECT_POINTS[i].end());
-  //   }
-  //   ++i;
-  // }
-  // image_points.emplace_back(p.r_center);  //r_center
-  // object_points.emplace_back(cv::Point3f(0, 0, 0));
-  std::vector<cv::Point2f> image_points = p.target().points;
-  // image_points.emplace_back(p.target().center);
-  image_points.emplace_back(p.r_center);
+  if (!ps.has_value() || ps->is_unsolve()) return false;
 
-  std::vector<cv::Point2f> image_points_fourth(image_points.begin(), image_points.begin() + 4);
-  std::vector<cv::Point3f> OBJECT_POINTS_FOURTH(OBJECT_POINTS.begin(), OBJECT_POINTS.begin() + 4);
-  cv::solvePnP(
-    OBJECT_POINTS_FOURTH, image_points_fourth, camera_matrix_, distort_coeffs_, rvec_, tvec_, false,
-    cv::SOLVEPNP_IPPE);
+  PowerRune & p = ps.value();
+  const auto & corners = p.target().points;
+  if (corners.size() < 4) {
+    tools::logger()->debug("[Buff_Solver] target 角点不足: {}", corners.size());
+    return false;
+  }
+
+  // 5点 PnP: 4角点 + 精修 r_center, 对应 buff 原点 (0,0,0)
+  const std::vector<cv::Point2f> image_points = {
+    corners[0], corners[1], corners[2], corners[3], p.r_center};
+  const std::vector<cv::Point3f> object_points = {
+    OBJECT_POINTS[0], OBJECT_POINTS[1], OBJECT_POINTS[2], OBJECT_POINTS[3], OBJECT_POINTS[6]};
+
+  if (
+    !cv::solvePnP(
+      object_points, image_points, camera_matrix_, distort_coeffs_, rvec_, tvec_, false,
+      cv::SOLVEPNP_SQPNP)) {
+    tools::logger()->debug("[Buff_Solver] solvePnP 失败");
+    return false;
+  }
+
+  const double reproj_err = mean_reprojection_error(
+    object_points, image_points, camera_matrix_, distort_coeffs_, rvec_, tvec_);
+  if (reproj_err > REPROJ_ERR_THRESHOLD) {
+    tools::logger()->debug("[Buff_Solver] 重投影误差过大: {:.2f}px", reproj_err);
+    return false;
+  }
 
   Eigen::Vector3d t_buff2camera;
   cv::cv2eigen(tvec_, t_buff2camera);
@@ -86,19 +111,21 @@ void Solver::solve(std::optional<PowerRune> & ps) const
   Eigen::Matrix3d R_buff2camera;
   cv::cv2eigen(rmat, R_buff2camera);
 
-  Eigen::Vector3d blade_xyz_in_buff{{0, 0, 700e-3}};
+  const Eigen::Vector3d blade_xyz_in_buff(
+    OBJECT_POINTS[4].x, OBJECT_POINTS[4].y, OBJECT_POINTS[4].z);
 
-  // buff -> camera
-  Eigen::Vector3d xyz_in_camera = t_buff2camera;
-  Eigen::Vector3d blade_xyz_in_camera = R_buff2camera * blade_xyz_in_buff + t_buff2camera;
+  // buff -> camera; t_buff2camera 为 R 标中心 (buff 原点)
+  const Eigen::Vector3d xyz_in_camera = t_buff2camera;
+  const Eigen::Vector3d blade_xyz_in_camera = R_buff2camera * blade_xyz_in_buff + t_buff2camera;
 
   // camera -> gimbal
-  Eigen::Matrix3d R_buff2gimbal = R_camera2gimbal_ * R_buff2camera;
-  Eigen::Vector3d xyz_in_gimbal = R_camera2gimbal_ * xyz_in_camera + t_camera2gimbal_;
-  Eigen::Vector3d blade_xyz_in_gimbal = R_camera2gimbal_ * blade_xyz_in_camera + t_camera2gimbal_;
+  const Eigen::Matrix3d R_buff2gimbal = R_camera2gimbal_ * R_buff2camera;
+  const Eigen::Vector3d xyz_in_gimbal = R_camera2gimbal_ * xyz_in_camera + t_camera2gimbal_;
+  const Eigen::Vector3d blade_xyz_in_gimbal =
+    R_camera2gimbal_ * blade_xyz_in_camera + t_camera2gimbal_;
 
-  /// gimbal -> world
-  Eigen::Matrix3d R_buff2world = R_gimbal2world_ * R_buff2gimbal;
+  // gimbal -> world
+  const Eigen::Matrix3d R_buff2world = R_gimbal2world_ * R_buff2gimbal;
 
   p.xyz_in_world = R_gimbal2world_ * xyz_in_gimbal;
   p.ypd_in_world = tools::xyz2ypd(p.xyz_in_world);
@@ -107,12 +134,11 @@ void Solver::solve(std::optional<PowerRune> & ps) const
   p.blade_ypd_in_world = tools::xyz2ypd(p.blade_xyz_in_world);
 
   p.ypr_in_world = tools::eulers(R_buff2world, 2, 1, 0);
+  return true;
 }
 
-// 调试用
 cv::Point2f Solver::point_buff2pixel(cv::Point3f x)
 {
-  // buff坐标系(单位:m)到像素坐标系
   std::vector<cv::Point3d> world_points;
   std::vector<cv::Point2d> image_points;
   world_points.push_back(x);
@@ -120,28 +146,24 @@ cv::Point2f Solver::point_buff2pixel(cv::Point3f x)
   return image_points.back();
 }
 
-// xyz_in_world2xyz_in_pix
 std::vector<cv::Point2f> Solver::reproject_buff(
   const Eigen::Vector3d & xyz_in_world, double yaw, double row) const
 {
   auto R_buff2world = tools::rotation_matrix(Eigen::Vector3d(yaw, 0.0, row));
-  // clang-format on
 
-  // get R_buff2camera t_buff2camera
   const Eigen::Vector3d & t_buff2world = xyz_in_world;
   Eigen::Matrix3d R_buff2camera =
     R_camera2gimbal_.transpose() * R_gimbal2world_.transpose() * R_buff2world;
   Eigen::Vector3d t_buff2camera =
     R_camera2gimbal_.transpose() * (R_gimbal2world_.transpose() * t_buff2world - t_camera2gimbal_);
 
-  // get rvec tvec
   cv::Vec3d rvec;
   cv::Mat R_buff2camera_cv;
   cv::eigen2cv(R_buff2camera, R_buff2camera_cv);
   cv::Rodrigues(R_buff2camera_cv, rvec);
   cv::Vec3d tvec(t_buff2camera[0], t_buff2camera[1], t_buff2camera[2]);
 
-  // reproject
+  // 调试投影: [0..3] 角点四边形, [4..6] 扇叶中心/结构点/R原点
   std::vector<cv::Point2f> image_points;
   cv::projectPoints(OBJECT_POINTS, rvec, tvec, camera_matrix_, distort_coeffs_, image_points);
   return image_points;

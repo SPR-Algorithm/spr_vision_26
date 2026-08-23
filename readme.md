@@ -126,7 +126,7 @@ spr_vision_26
   → Classifier 识别数字
   → Solver.solve() PnP 解算位置
   → Tracker 跟踪/匹配目标
-  → Aimer 选择目标 + 弹道补偿
+  → Aimer/Planner 选择目标 + 弹道补偿
   → Shooter 判断开火 → 发送云台指令
 ```
 

@@ -48,7 +48,7 @@ private:
   int num_keypoints_ = 5;
   int kpt_dim_ = 3;  // x, y, confidence
 
-  // 后处理阈值 (与 RuneDetectionModel 一致)
+  // 后处理阈值 
   float conf_threshold_ = 0.8f;
   float kpt_conf_threshold_ = 0.8f;
   float nms_dist_threshold_ = 30.0f;

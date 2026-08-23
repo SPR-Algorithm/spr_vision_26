@@ -9,6 +9,7 @@ YOLO11_BUFF::YOLO11_BUFF(const std::string & config)
 {
   auto yaml = YAML::LoadFile(config);
   std::string model_path = yaml["model"].as<std::string>();
+  std::string device = yaml["device"] ? yaml["device"].as<std::string>() : "CPU";
   model = core.read_model(model_path);
 
   // 解析输入尺寸 (NCHW, 如 [1,3,480,640])
@@ -33,7 +34,7 @@ YOLO11_BUFF::YOLO11_BUFF(const std::string & config)
   model = ppp.build();
 
   compiled_model = core.compile_model(
-    model, "CPU", ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
+    model, device, ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
   infer_request = compiled_model.create_infer_request();
 
   // 解析输出尺寸 [1, C, A] 或 [1, A, C]
@@ -57,8 +58,8 @@ YOLO11_BUFF::YOLO11_BUFF(const std::string & config)
   }
 
   tools::logger()->info(
-    "[YOLO11_BUFF] 模型加载成功: {} (输入 {}x{}, 输出 [1,{},{}])", model_path, input_width_,
-    input_height_, output_channels_, num_anchors_);
+    "[YOLO11_BUFF] 模型加载成功: {} (输入 {}x{}, 输出 [1,{},{}], device: {})", model_path,
+    input_width_, input_height_, output_channels_, num_anchors_, device);
 }
 
 void YOLO11_BUFF::letterbox(

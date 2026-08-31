@@ -1,0 +1,2 @@
+# Stage 0 runtime parameters for BuffProcessor.
+tracking_timeout_ms: 20

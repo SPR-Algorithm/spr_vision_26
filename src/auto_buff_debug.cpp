@@ -20,39 +20,6 @@ const std::string keys =
   "{end-index e    | 0                      | 视频结束帧下标    }"
   "{@input-path    |                        | avi和txt文件的路径}";
 
-auto_buff::BuffActivation activation_from_detector(int cls)
-{
-  switch (cls) {
-    case 0:
-      return auto_buff::BuffActivation::INACTIVE;
-    case 1:
-      return auto_buff::BuffActivation::SMALL_ACTIVATED;
-    case 2:
-      return auto_buff::BuffActivation::BIG_ACTIVATED;
-    default:
-      return auto_buff::BuffActivation::INVALID;
-  }
-}
-
-auto_buff::BuffInput make_input(
-  const cv::Mat & img, std::chrono::steady_clock::time_point timestamp, const Eigen::Quaterniond & q,
-  io::GimbalState state, io::GimbalMode mode, const std::optional<auto_buff::PowerRune> & detection)
-{
-  auto_buff::BuffInput input;
-  input.img = img;
-  input.timestamp = timestamp;
-  input.imu_q = q;
-  input.gimbal_state = state;
-  input.gimbal_mode = mode;
-  if (detection.has_value() && !detection->fanblades.empty() &&
-      detection->fanblades.front().points.size() == input.points.size()) {
-    const auto & blade = detection->fanblades.front();
-    std::copy_n(blade.points.begin(), input.points.size(), input.points.begin());
-    input.activation = activation_from_detector(blade.cls);
-    input.confidence = 1.0F;
-  }
-  return input;
-}
 }  // namespace
 
 int main(int argc, char * argv[])
@@ -94,9 +61,9 @@ int main(int argc, char * argv[])
     text >> t >> w >> x >> y >> z;
     const auto timestamp = t0 + std::chrono::microseconds(static_cast<int>(t * 1e6));
     const Eigen::Quaterniond q(w, x, y, z);
-    const auto detection = detector.detect(img);
-    const auto output = processor.process(
-      make_input(img, timestamp, q, gimbal.state(), gimbal.mode(), detection));
+    const auto observation = detector.detect_observation(img);
+    const auto output = processor.process(auto_buff::make_buff_input(
+      img, timestamp, q, gimbal.state(), gimbal.mode(), observation));
     gimbal.send(output);
 
     nlohmann::json data;

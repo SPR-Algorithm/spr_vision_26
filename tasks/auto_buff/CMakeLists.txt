@@ -15,5 +15,7 @@ add_library(auto_buff OBJECT
 )
 
 target_compile_definitions(auto_buff PUBLIC OPENCV_DISABLE_EIGEN_TENSOR_SUPPORT)
+get_target_property(AUTO_BUFF_EIGEN_INCLUDE_DIRS Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(auto_buff BEFORE PUBLIC ${AUTO_BUFF_EIGEN_INCLUDE_DIRS})
 
 target_link_libraries(auto_buff auto_aim openvino::runtime ${CERES_LIBRARIES})

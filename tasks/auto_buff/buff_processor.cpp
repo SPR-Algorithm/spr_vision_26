@@ -1,6 +1,9 @@
 #include "buff_processor.hpp"
 
 #include <cmath>
+#include <stdexcept>
+
+#include <yaml-cpp/yaml.h>
 
 namespace auto_buff
 {
@@ -19,19 +22,47 @@ float cross(const cv::Point2f & a, const cv::Point2f & b, const cv::Point2f & c)
 }
 }  // namespace
 
+BuffInput make_buff_input(
+  const cv::Mat & img, std::chrono::steady_clock::time_point timestamp,
+  const Eigen::Quaterniond & imu_q, io::GimbalState gimbal_state, io::GimbalMode gimbal_mode,
+  const std::optional<BuffObservation> & observation)
+{
+  BuffInput input;
+  input.img = img;
+  input.timestamp = timestamp;
+  input.imu_q = imu_q;
+  input.gimbal_state = gimbal_state;
+  input.gimbal_mode = gimbal_mode;
+  if (observation.has_value()) {
+    input.points = observation->points;
+    input.activation = observation->activation;
+    input.confidence = observation->confidence;
+  }
+  return input;
+}
+
 BuffProcessor::BuffProcessor(const std::string & camera_config, const std::string & auto_buff_config)
 {
   (void)camera_config;
-  (void)auto_buff_config;
+  const auto config = YAML::LoadFile(auto_buff_config);
+  const auto timeout_ms = config["tracking_timeout_ms"].as<int>();
+  if (timeout_ms <= 0) throw std::runtime_error("tracking_timeout_ms must be positive");
+  tracking_timeout_ = std::chrono::milliseconds(timeout_ms);
 }
 
 io::VisionToGimbal BuffProcessor::process(const BuffInput & input)
 {
-  if (
-    (last_mode_.has_value() && last_mode_.value() != input.gimbal_mode) ||
-    (last_timestamp_.has_value() && input.timestamp < last_timestamp_.value()) ||
-    (last_timestamp_.has_value() && input.timestamp - last_timestamp_.value() > kTrackingTimeout)) {
+  if (last_mode_.has_value() && last_mode_.value() != input.gimbal_mode) {
     reset();
+    return {};
+  }
+  if (last_timestamp_.has_value() && input.timestamp < last_timestamp_.value()) {
+    reset();
+    return {};
+  }
+  if (last_timestamp_.has_value() && input.timestamp - last_timestamp_.value() > tracking_timeout_) {
+    reset();
+    return {};
   }
 
   io::VisionToGimbal output{};
@@ -113,6 +144,17 @@ bool BuffProcessor::has_valid_points(const BuffInput & input)
 
   for (const auto turn : turns) {
     if ((clockwise && turn >= -1e-3F) || (counter_clockwise && turn <= 1e-3F)) return false;
+  }
+
+  const auto & r_mark = input.points[4];
+  for (const auto & corner : {top, right, bottom, left}) {
+    if (cv::norm(r_mark - corner) <= 1e-3F) return false;
+  }
+  if (std::abs(cross(top, right, r_mark)) <= 1e-3F ||
+      std::abs(cross(right, bottom, r_mark)) <= 1e-3F ||
+      std::abs(cross(bottom, left, r_mark)) <= 1e-3F ||
+      std::abs(cross(left, top, r_mark)) <= 1e-3F) {
+    return false;
   }
   return true;
 }

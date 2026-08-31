@@ -2,6 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <numeric>
 #include <tuple>
 
 #include "tools/logger.hpp"

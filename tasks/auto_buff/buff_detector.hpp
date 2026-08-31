@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "buff_type.hpp"
+#include "buff_processor.hpp"
 #include "tools/img_tools.hpp"
 #include "yolo11_buff.hpp"
 const int LOSE_MAX = 20;  // 丢失的阙值
@@ -21,7 +22,11 @@ public:
 
   std::optional<PowerRune> detect(cv::Mat & bgr_img);
 
-std::optional<PowerRune> detect_debug(cv::Mat & bgr_img, cv::Point2f v);
+  std::optional<BuffObservation> detect_observation(cv::Mat & bgr_img);
+
+  static std::optional<BuffObservation> to_observation(const FanBlade & blade);
+
+  std::optional<PowerRune> detect_debug(cv::Mat & bgr_img, cv::Point2f v);
 
 private:
   void handle_img(const cv::Mat & bgr_img, cv::Mat & dilated_img);

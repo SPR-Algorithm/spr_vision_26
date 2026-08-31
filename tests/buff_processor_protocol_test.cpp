@@ -1,5 +1,5 @@
-#include <cassert>
 #include <chrono>
+#include <iostream>
 
 #include <opencv2/opencv.hpp>
 
@@ -7,6 +7,18 @@
 
 namespace
 {
+int failures = 0;
+
+void check(bool condition, const char * expression, int line)
+{
+  if (!condition) {
+    std::cerr << "CHECK failed: " << expression << " at " << line << '\n';
+    ++failures;
+  }
+}
+
+#define CHECK(condition) check((condition), #condition, __LINE__)
+
 auto valid_input(io::GimbalMode mode, auto_buff::BuffActivation activation)
 {
   auto_buff::BuffInput input;
@@ -26,16 +38,16 @@ auto valid_input(io::GimbalMode mode, auto_buff::BuffActivation activation)
 
 void assert_idle_frame(const io::VisionToGimbal & output)
 {
-  assert(output.head[0] == 'S');
-  assert(output.head[1] == 'P');
-  assert(output.tail == 0xef);
-  assert(output.mode == 0);
-  assert(output.yaw == 0.0F);
-  assert(output.yaw_vel == 0.0F);
-  assert(output.yaw_acc == 0.0F);
-  assert(output.pitch == 0.0F);
-  assert(output.pitch_vel == 0.0F);
-  assert(output.pitch_acc == 0.0F);
+  CHECK(output.head[0] == 'S');
+  CHECK(output.head[1] == 'P');
+  CHECK(output.tail == 0xef);
+  CHECK(output.mode == 0);
+  CHECK(output.yaw == 0.0F);
+  CHECK(output.yaw_vel == 0.0F);
+  CHECK(output.yaw_acc == 0.0F);
+  CHECK(output.pitch == 0.0F);
+  CHECK(output.pitch_vel == 0.0F);
+  CHECK(output.pitch_acc == 0.0F);
 }
 }  // namespace
 
@@ -43,23 +55,50 @@ int main()
 {
   static_assert(sizeof(io::VisionToGimbal) == 28);
 
-  auto_buff::BuffProcessor processor("", "");
+  auto_buff::BuffProcessor processor("", "configs/auto_buff.yaml");
+  const auto t0 = std::chrono::steady_clock::time_point{} + std::chrono::seconds(1);
 
-  const auto small = processor.process(
-    valid_input(io::GimbalMode::SMALL_BUFF, auto_buff::BuffActivation::SMALL_ACTIVATED));
-  assert(small.mode == 1);
-  assert(small.head[0] == 'S');
-  assert(small.head[1] == 'P');
-  assert(small.tail == 0xef);
+  auto small_input = valid_input(io::GimbalMode::SMALL_BUFF, auto_buff::BuffActivation::SMALL_ACTIVATED);
+  small_input.timestamp = t0;
+  const auto small = processor.process(small_input);
+  CHECK(small.mode == 1);
+  CHECK(small.head[0] == 'S');
+  CHECK(small.head[1] == 'P');
+  CHECK(small.tail == 0xef);
 
-  const auto big = processor.process(
-    valid_input(io::GimbalMode::BIG_BUFF, auto_buff::BuffActivation::BIG_ACTIVATED));
-  assert(big.mode == 1);
+  auto big_input = valid_input(io::GimbalMode::BIG_BUFF, auto_buff::BuffActivation::BIG_ACTIVATED);
+  big_input.timestamp = t0 + std::chrono::milliseconds(1);
+  assert_idle_frame(processor.process(big_input));
+  big_input.timestamp += std::chrono::milliseconds(1);
+  CHECK(processor.process(big_input).mode == 1);
 
   auto conflicting = valid_input(io::GimbalMode::SMALL_BUFF, auto_buff::BuffActivation::BIG_ACTIVATED);
+  conflicting.timestamp = big_input.timestamp + std::chrono::milliseconds(1);
   assert_idle_frame(processor.process(conflicting));
 
   auto invalid = valid_input(io::GimbalMode::SMALL_BUFF, auto_buff::BuffActivation::SMALL_ACTIVATED);
+  invalid.timestamp = conflicting.timestamp + std::chrono::milliseconds(1);
   invalid.points[0].y = -1.0F;
   assert_idle_frame(processor.process(invalid));
+
+  auto r_degenerate = valid_input(io::GimbalMode::SMALL_BUFF, auto_buff::BuffActivation::SMALL_ACTIVATED);
+  r_degenerate.timestamp = invalid.timestamp + std::chrono::milliseconds(1);
+  r_degenerate.points[4] = r_degenerate.points[0];
+  assert_idle_frame(processor.process(r_degenerate));
+
+  auto tracked = valid_input(io::GimbalMode::SMALL_BUFF, auto_buff::BuffActivation::SMALL_ACTIVATED);
+  tracked.timestamp = t0 + std::chrono::seconds(2);
+  CHECK(processor.process(tracked).mode == 1);
+  auto regressed = tracked;
+  regressed.timestamp -= std::chrono::milliseconds(1);
+  assert_idle_frame(processor.process(regressed));
+
+  auto restarted = tracked;
+  restarted.timestamp += std::chrono::milliseconds(1);
+  CHECK(processor.process(restarted).mode == 1);
+  auto expired = restarted;
+  expired.timestamp += std::chrono::milliseconds(25);
+  assert_idle_frame(processor.process(expired));
+
+  return failures == 0 ? 0 : 1;
 }

@@ -1,7 +1,7 @@
 #ifndef IO__GIMBAL_HPP
 #define IO__GIMBAL_HPP
 
-#include <eigen3/Eigen/Geometry>
+#include <Eigen/Geometry>
 #include <atomic>
 #include <chrono>
 #include <mutex>

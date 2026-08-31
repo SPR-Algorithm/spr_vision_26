@@ -82,10 +82,11 @@ public:
 验收命令与结果：
 
 ```text
-cmake --build build --target buff_processor_protocol_test auto_buff auto_buff_debug auto_buff_debug_mpc auto_buff_test buff_detector_test auto_aim_test gimbal_test standard -j2
+cmake --build build --target buff_processor_protocol_test buff_detector_adapter_test auto_buff auto_buff_debug auto_buff_debug_mpc auto_buff_test buff_detector_test standard_mpc uav standard auto_aim_test gimbal_test -j2
 ./build/buff_processor_protocol_test
+./build/buff_detector_adapter_test
 
-结果：全部目标构建成功；协议测试成功。ROS2 Jazzy 环境按项目逻辑跳过 Humble 专用目标。
+结果：全部目标构建成功；协议和检测适配器测试成功。阶段 0 参数从 `configs/auto_buff.yaml` 加载。ROS2 Jazzy 环境按项目逻辑跳过 Humble 专用目标。
 ```
 
 建议提交：`refactor(auto_buff): align processor and gimbal interface`
@@ -213,7 +214,7 @@ cmake --build build --target buff_processor_protocol_test auto_buff auto_buff_de
 
 | 日期 | 阶段 | Commit | 聚焦测试 | 构建/回归 | 备注 |
 |---|---|---|---|---|---|
-| 2026-08-31 | 阶段 0 | `refactor(auto_buff): align processor and gimbal interface` | `buff_processor_protocol_test` | auto_buff、两种 debug、诊断及 auto_aim/gimbal/standard 目标构建成功 | 协议测试覆盖 mode 0/1、冲突/越界降级、帧头尾和 28 字节 ABI |
+| 2026-08-31 | 阶段 0 | `refactor(auto_buff): align processor and gimbal interface`（Fix Round 1） | `buff_processor_protocol_test`、`buff_detector_adapter_test` | auto_buff、两种 debug、诊断、standard_mpc、uav 及 auto_aim/gimbal/standard 目标构建成功 | 协议测试覆盖 mode 0/1、状态安全重置、冲突/越界/R 点降级、帧头尾和 28 字节 ABI；检测适配器保留真实置信度 |
 | 待填写 | 阶段 1 | 待填写 | 待填写 | 待填写 | 待填写 |
 | 待填写 | 阶段 2 | 待填写 | 待填写 | 待填写 | 待填写 |
 | 待填写 | 阶段 3 | 待填写 | 待填写 | 待填写 | 待填写 |

@@ -65,6 +65,33 @@ void CBoard::send(Command command) const
   }
 }
 
+void CBoard::send(const VisionToGimbal & command) const
+{
+  send(Command{
+    command.mode != 0, command.mode == 2, command.yaw, command.pitch, 0.0});
+}
+
+GimbalMode CBoard::gimbal_mode() const
+{
+  switch (mode) {
+    case Mode::small_buff:
+      return GimbalMode::SMALL_BUFF;
+    case Mode::big_buff:
+      return GimbalMode::BIG_BUFF;
+    case Mode::auto_aim:
+    case Mode::outpost:
+      return GimbalMode::AUTO_AIM;
+    case Mode::idle:
+      return GimbalMode::IDLE;
+  }
+  return GimbalMode::IDLE;
+}
+
+GimbalState CBoard::gimbal_state() const
+{
+  return {0.0F, 0.0F, 0.0F, 0.0F, static_cast<float>(bullet_speed), 0};
+}
+
 void CBoard::callback(const can_frame & frame)
 {
   auto timestamp = std::chrono::steady_clock::now();

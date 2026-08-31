@@ -14,6 +14,20 @@ order_keypoints(const std::vector<cv::Point2f> &kpt) {
           kpt[2]};
 }
 
+static BuffActivation activation_from_class(int cls)
+{
+  switch (cls) {
+    case 0:
+      return BuffActivation::INACTIVE;
+    case 1:
+      return BuffActivation::SMALL_ACTIVATED;
+    case 2:
+      return BuffActivation::BIG_ACTIVATED;
+    default:
+      return BuffActivation::INVALID;
+  }
+}
+
 Buff_Detector::Buff_Detector(const std::string &config)
     : status_(LOSE), lose_(0), MODE_(config) {}
 
@@ -120,7 +134,7 @@ std::optional<PowerRune> Buff_Detector::detect_24(cv::Mat &bgr_img) {
     std::vector<cv::Point2f> ordered = order_keypoints(result.kpt);
     cv::Point2f center =
         (ordered[0] + ordered[1] + ordered[2] + ordered[3]) * 0.25f;
-    fanblades.emplace_back(FanBlade(ordered, center, _light, result.label));
+    fanblades.emplace_back(FanBlade(ordered, center, _light, result.label, result.prob));
   }
 
   /// 生成PowerRune
@@ -146,6 +160,23 @@ std::optional<PowerRune> Buff_Detector::detect(cv::Mat &bgr_img) {
   return detect_24(bgr_img);
 }
 
+std::optional<BuffObservation> Buff_Detector::detect_observation(cv::Mat & bgr_img)
+{
+  const auto power_rune = detect(bgr_img);
+  if (!power_rune.has_value() || power_rune->fanblades.empty()) return std::nullopt;
+  return to_observation(power_rune->fanblades.front());
+}
+
+std::optional<BuffObservation> Buff_Detector::to_observation(const FanBlade & blade)
+{
+  if (blade.points.size() != 5) return std::nullopt;
+  BuffObservation observation;
+  std::copy_n(blade.points.begin(), observation.points.size(), observation.points.begin());
+  observation.activation = activation_from_class(blade.cls);
+  observation.confidence = blade.confidence;
+  return observation;
+}
+
 std::optional<PowerRune> Buff_Detector::detect_debug(cv::Mat &bgr_img,
                                                      cv::Point2f v) {
   /// onnx 模型检测
@@ -165,7 +196,7 @@ std::optional<PowerRune> Buff_Detector::detect_debug(cv::Mat &bgr_img,
     std::vector<cv::Point2f> ordered = order_keypoints(result.kpt);
     cv::Point2f center =
         (ordered[0] + ordered[1] + ordered[2] + ordered[3]) * 0.25f;
-    fanblades_t.emplace_back(FanBlade(ordered, center, _light, result.label));
+    fanblades_t.emplace_back(FanBlade(ordered, center, _light, result.label, result.prob));
   }
 
   /// 计算r_center,筛选fanblade

@@ -1,7 +1,7 @@
 #ifndef AUTO_BUFF__BUFF_PROCESSOR_HPP
 #define AUTO_BUFF__BUFF_PROCESSOR_HPP
 
-#include <eigen3/Eigen/Geometry>
+#include <Eigen/Geometry>
 #include <array>
 #include <chrono>
 #include <optional>
@@ -33,6 +33,18 @@ struct BuffInput
   io::GimbalMode gimbal_mode = io::GimbalMode::IDLE;
 };
 
+struct BuffObservation
+{
+  std::array<cv::Point2f, 5> points{};
+  BuffActivation activation = BuffActivation::INVALID;
+  float confidence = 0.0F;
+};
+
+BuffInput make_buff_input(
+  const cv::Mat & img, std::chrono::steady_clock::time_point timestamp,
+  const Eigen::Quaterniond & imu_q, io::GimbalState gimbal_state, io::GimbalMode gimbal_mode,
+  const std::optional<BuffObservation> & observation);
+
 class BuffProcessor
 {
 public:
@@ -42,7 +54,7 @@ public:
   void reset();
 
 private:
-  static constexpr auto kTrackingTimeout = std::chrono::milliseconds(500);
+  std::chrono::milliseconds tracking_timeout_{500};
 
   std::optional<io::GimbalMode> last_mode_;
   std::optional<std::chrono::steady_clock::time_point> last_timestamp_;

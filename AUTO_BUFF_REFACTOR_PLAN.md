@@ -6,7 +6,7 @@
 
 | 阶段 | 状态 | 进入条件 |
 |---|---|---|
-| 阶段 0：构建基线与统一入口 | 进行中 | 当前阶段 |
+| 阶段 0：构建基线与统一入口 | 已完成 | 阶段验收通过 |
 | 阶段 1：观测和目标数据模型 | 待开始 | 阶段 0 验收通过 |
 | 阶段 2：锚点 PnP 与 Chamfer 位姿精化 | 阻塞 | 两段实测 JSONL v1 标注完成并通过校验 |
 | 阶段 3：相位与运动估计 | 待开始 | 阶段 2 验收通过 |
@@ -70,19 +70,22 @@ public:
 
 ## Task 1：阶段 0——构建基线与统一入口
 
-- [ ] 为 auto_buff 相关目标定义 `OPENCV_DISABLE_EIGEN_TENSOR_SUPPORT`。
-- [ ] 建立协议测试，先观察预期失败。
-- [ ] 建立 `BuffInput`、`BuffProcessor` 和唯一的 `VisionToGimbal` 输出映射。
-- [ ] 占位处理只做输入校验和 mode 0/1 映射，永不输出 mode 2。
-- [ ] 切换 `auto_buff_debug`、`auto_buff_debug_mpc` 到 `processor.process(input)` 与 `gimbal.send(output)`。
-- [ ] 删除 `Command/Plan` 作为 auto_buff 对外输出的用法。
-- [ ] 验证 mode 0 六个运动字段清零、头尾及 28 字节布局。
-- [ ] 构建 auto_buff 相关目标。
+- [x] 为 auto_buff 相关目标定义 `OPENCV_DISABLE_EIGEN_TENSOR_SUPPORT`。
+- [x] 建立协议测试，先观察预期失败。
+- [x] 建立 `BuffInput`、`BuffProcessor` 和唯一的 `VisionToGimbal` 输出映射。
+- [x] 占位处理只做输入校验和 mode 0/1 映射，永不输出 mode 2。
+- [x] 切换 `auto_buff_debug`、`auto_buff_debug_mpc` 到 `processor.process(input)` 与 `gimbal.send(output)`。
+- [x] 删除 `Command/Plan` 作为 auto_buff 对外输出的用法。
+- [x] 验证 mode 0 六个运动字段清零、头尾及 28 字节布局。
+- [x] 构建 auto_buff 相关目标。
 
 验收命令与结果：
 
 ```text
-待记录
+cmake --build build --target buff_processor_protocol_test auto_buff auto_buff_debug auto_buff_debug_mpc auto_buff_test buff_detector_test auto_aim_test gimbal_test standard -j2
+./build/buff_processor_protocol_test
+
+结果：全部目标构建成功；协议测试成功。ROS2 Jazzy 环境按项目逻辑跳过 Humble 专用目标。
 ```
 
 建议提交：`refactor(auto_buff): align processor and gimbal interface`
@@ -210,7 +213,7 @@ public:
 
 | 日期 | 阶段 | Commit | 聚焦测试 | 构建/回归 | 备注 |
 |---|---|---|---|---|---|
-| 待填写 | 阶段 0 | 待填写 | 待填写 | 待填写 | 待填写 |
+| 2026-08-31 | 阶段 0 | `refactor(auto_buff): align processor and gimbal interface` | `buff_processor_protocol_test` | auto_buff、两种 debug、诊断及 auto_aim/gimbal/standard 目标构建成功 | 协议测试覆盖 mode 0/1、冲突/越界降级、帧头尾和 28 字节 ABI |
 | 待填写 | 阶段 1 | 待填写 | 待填写 | 待填写 | 待填写 |
 | 待填写 | 阶段 2 | 待填写 | 待填写 | 待填写 | 待填写 |
 | 待填写 | 阶段 3 | 待填写 | 待填写 | 待填写 | 待填写 |

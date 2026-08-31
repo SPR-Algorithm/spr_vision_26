@@ -5,7 +5,6 @@
 #include <nlohmann/json.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "tasks/auto_buff/buff_aimer.hpp"
 #include "tasks/auto_buff/buff_detector.hpp"
 #include "tasks/auto_buff/buff_solver.hpp"
 #include "tasks/auto_buff/buff_target.hpp"
@@ -48,13 +47,10 @@ int main(int argc, char * argv[])
   auto_buff::Solver solver(config_path);
   // auto_buff::SmallTarget target;
   auto_buff::BigTarget target;
-  auto_buff::Aimer aimer(config_path);
 
   cv::Mat img, drawing;
   auto t0 = std::chrono::steady_clock::now();
 
-  io::Command last_command;
-  double last_t = -1;
 
   video.set(cv::CAP_PROP_POS_FRAMES, start_index);
   for (int i = 0; i < start_index; i++) {
@@ -83,12 +79,6 @@ int main(int argc, char * argv[])
     }
 
     target.get_target(power_runes, timestamp);
-
-    auto target_copy = target;
-
-    auto command = aimer.aim(target_copy, timestamp, 22, false);
-
-    // cboard.send(command);
 
     // -------------- 调试输出 --------------
 
@@ -125,10 +115,9 @@ int main(int argc, char * argv[])
         img, std::vector<cv::Point2f>(image_points.begin() + 4, image_points.end()), {0, 255, 0});
 
       // buff瞄准位置(预测)
-      double dangle = target.ekf_x()[5] - target_copy.ekf_x()[5];
       auto Rxyz_in_world_pre = target.point_buff2world(Eigen::Vector3d(0.0, 0.0, 0.0));
       image_points =
-        solver.reproject_buff(Rxyz_in_world_pre, target_copy.ekf_x()[4], target_copy.ekf_x()[5]);
+        solver.reproject_buff(Rxyz_in_world_pre, target.ekf_x()[4], target.ekf_x()[5]);
       tools::draw_points(
         img, std::vector<cv::Point2f>(image_points.begin(), image_points.begin() + 4), {255, 0, 0});
       tools::draw_points(
@@ -157,11 +146,6 @@ int main(int argc, char * argv[])
     Eigen::Vector3d ypr = tools::eulers(solver.R_gimbal2world(), 2, 1, 0);
     data["gimbal_yaw"] = ypr[0] * 57.3;
     data["gimbal_pitch"] = -ypr[1] * 57.3;
-
-    if (command.control) {
-      data["cmd_yaw"] = command.yaw * 57.3;
-      data["cmd_pitch"] = command.pitch * 57.3;
-    }
 
     plotter.plot(data);
 

@@ -1,7 +1,7 @@
 #ifndef IO__GIMBAL_HPP
 #define IO__GIMBAL_HPP
 
-#include <Eigen/Geometry>
+#include <eigen3/Eigen/Geometry>
 #include <atomic>
 #include <chrono>
 #include <mutex>
@@ -44,7 +44,7 @@ struct __attribute__((packed)) VisionToGimbal
   uint8_t tail = 0xef;  // 帧尾校验
 };
 
-static_assert(sizeof(VisionToGimbal) <= 64);
+static_assert(sizeof(VisionToGimbal) == 28);
 
 enum class GimbalMode
 {

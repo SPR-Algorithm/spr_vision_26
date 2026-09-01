@@ -10,17 +10,10 @@
 #include <opencv2/core.hpp>
 
 #include "io/gimbal/gimbal.hpp"
+#include "rune_types.hpp"
 
 namespace auto_buff
 {
-enum class BuffActivation
-{
-  INACTIVE,
-  SMALL_ACTIVATED,
-  BIG_ACTIVATED,
-  INVALID
-};
-
 struct BuffInput
 {
   cv::Mat img;
@@ -31,13 +24,6 @@ struct BuffInput
   Eigen::Quaterniond imu_q = Eigen::Quaterniond::Identity();
   io::GimbalState gimbal_state{};
   io::GimbalMode gimbal_mode = io::GimbalMode::IDLE;
-};
-
-struct BuffObservation
-{
-  std::array<cv::Point2f, 5> points{};
-  BuffActivation activation = BuffActivation::INVALID;
-  float confidence = 0.0F;
 };
 
 BuffInput make_buff_input(

@@ -7,6 +7,7 @@ find_package(Ceres REQUIRED)
 add_library(auto_buff OBJECT 
     buff_processor.cpp
     buff_type.cpp
+    observation_refiner.cpp
     buff_detector.cpp
     buff_solver.cpp
     buff_aimer.cpp

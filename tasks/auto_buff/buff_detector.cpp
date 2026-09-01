@@ -3,15 +3,16 @@
 #include "tools/logger.hpp"
 
 namespace auto_buff {
-// RuneDetectionModel kpt 索引 -> OBJECT_POINTS 的 上/右/下/左 顺序
-// 若实测标注顺序即 上右下左, 填 {0,1,2,3}; 否则按实测填写, 例如 {0,3,2,1}
-static const int KPT_MAP[4] = {0, 3, 2, 1};
+// RuneDetectionModel order: [top, left, R, right, bottom].
+// Public observation order: [top, right, bottom, left, R].
+constexpr std::array<std::size_t, BUFF_POINT_COUNT> KPT_MAP = {0, 3, 4, 1, 2};
 
-// 将模型输出的 5 关键点重排到 [上, 右, 下, 左, R标中心]
-static std::vector<cv::Point2f>
+static std::optional<BuffPoints>
 order_keypoints(const std::vector<cv::Point2f> &kpt) {
-  return {kpt[KPT_MAP[0]], kpt[KPT_MAP[1]], kpt[KPT_MAP[2]], kpt[KPT_MAP[3]],
-          kpt[2]};
+  if (kpt.size() != KPT_MAP.size()) return std::nullopt;
+  BuffPoints ordered;
+  for (std::size_t i = 0; i < KPT_MAP.size(); ++i) ordered[i] = kpt[KPT_MAP[i]];
+  return ordered;
 }
 
 static BuffActivation activation_from_class(int cls)
@@ -130,8 +131,10 @@ std::optional<PowerRune> Buff_Detector::detect_24(cv::Mat &bgr_img) {
 
   std::vector<FanBlade> fanblades;
   for (auto &result : results) {
-    // 重排关键点顺序(上右下左) + 扇叶中心用 4 角点均值
-    std::vector<cv::Point2f> ordered = order_keypoints(result.kpt);
+    const auto observation = to_observation(result);
+    if (!observation.has_value()) continue;
+    const std::vector<cv::Point2f> ordered(
+      observation->points.begin(), observation->points.end());
     cv::Point2f center =
         (ordered[0] + ordered[1] + ordered[2] + ordered[3]) * 0.25f;
     fanblades.emplace_back(FanBlade(ordered, center, _light, result.label, result.prob));
@@ -167,6 +170,19 @@ std::optional<BuffObservation> Buff_Detector::detect_observation(cv::Mat & bgr_i
   return to_observation(power_rune->fanblades.front());
 }
 
+std::optional<BuffObservation> Buff_Detector::to_observation(
+  const YOLO11_BUFF::Object & detection)
+{
+  const auto ordered = order_keypoints(detection.kpt);
+  if (!ordered.has_value()) return std::nullopt;
+
+  BuffObservation observation;
+  observation.points = ordered.value();
+  observation.activation = activation_from_class(detection.label);
+  observation.confidence = detection.prob;
+  return observation;
+}
+
 std::optional<BuffObservation> Buff_Detector::to_observation(const FanBlade & blade)
 {
   if (blade.points.size() != 5) return std::nullopt;
@@ -193,7 +209,10 @@ std::optional<PowerRune> Buff_Detector::detect_debug(cv::Mat &bgr_img,
 
   std::vector<FanBlade> fanblades_t;
   for (auto &result : results) {
-    std::vector<cv::Point2f> ordered = order_keypoints(result.kpt);
+    const auto observation = to_observation(result);
+    if (!observation.has_value()) continue;
+    const std::vector<cv::Point2f> ordered(
+      observation->points.begin(), observation->points.end());
     cv::Point2f center =
         (ordered[0] + ordered[1] + ordered[2] + ordered[3]) * 0.25f;
     fanblades_t.emplace_back(FanBlade(ordered, center, _light, result.label, result.prob));

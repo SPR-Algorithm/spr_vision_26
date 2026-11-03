@@ -8,7 +8,7 @@ set(DEBUG_SOURCES
 add_library(web_debugger STATIC ${DEBUG_SOURCES})
 
 target_include_directories(web_debugger PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
-target_link_libraries(web_debugger ${OpenCV_LIBS} pthread yaml-cpp)
+target_link_libraries(web_debugger ${OpenCV_LIBS} pthread yaml-cpp nlohmann_json::nlohmann_json)
 
 # 把 static/ 目录安装到构建目录，运行时能找到 index.html
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/static

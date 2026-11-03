@@ -1,40 +1,34 @@
-// debug_usage_example.cpp — 展示如何在主循环中接入 WebDebugger
-// 这不是独立可执行文件，是集成示例，参考后把相关代码加入 standard.cpp
-
-#include "debug/web_debugger.hpp"
+// 调试事件总线接入示例；不是独立可执行文件。
+// 完整集成可参考 src/auto_aim_debug_mpc.cpp。
+#include "debug/debug_bus.hpp"
+#include "debug/param_tuner.hpp"
+#include "debug/web_debugger.hpp"  // ReprojectionData 的完整定义
 #include "tasks/auto_aim/armor.hpp"
 
-// ── 在 main() 或 AutoAim 初始化时启动调试器 ──────────────────────────────────
-//
-//   debug::WebDebugger debugger(8080);
-//   debugger.start();
-//   // 浏览器访问 http://127.0.0.1:8080
+#include <chrono>
+#include <list>
+#include <string>
+#include <vector>
 
-// ── 每帧检测完成后推送 ────────────────────────────────────────────────────────
-//
-// void push_debug(
-//   debug::WebDebugger & dbg,
-//   const cv::Mat & frame,
-//   const std::list<auto_aim::Armor> & armors,
-//   const std::vector<std::vector<cv::Point2f>> & reprojected_pts,
-//   double latency_ms)
-// {
-//   std::vector<debug::DetectionData> dets;
-//   for (const auto & armor : armors) {
-//     debug::DetectionData d;
-//     d.pts    = armor.points;                          // std::vector<cv::Point2f>
-//     d.color  = static_cast<int>(armor.color);         // 0=blue 1=red
-//     d.number = static_cast<int>(armor.name);          // 0=guard 1-5 6=outpost...
-//     d.conf   = armor.confidence;
-//     dets.push_back(d);
-//   }
-//
-//   std::vector<debug::ReprojectionData> reproj;
-//   for (const auto & pts : reprojected_pts) {
-//     debug::ReprojectionData r;
-//     r.pts = pts;
-//     reproj.push_back(r);
-//   }
-//
-//   dbg.push(frame, dets, reproj, latency_ms);
-// }
+// 初始化一次；在 YAML 的 debug_bus.sinks.web 下启用 Web sink。
+void init_debug(const std::string & config_path)
+{
+  debug::ParamTuner::instance().load_from_yaml(config_path);
+  debug::DebugBus::instance().load_config(YAML::LoadFile(config_path));
+}
+
+// 每帧在 camera.read 返回后记录 proc_start，处理结束后调用此函数。
+// capture_time 使用 camera.read 返回的采集时间，必须与 steady_clock 同一时钟。
+void post_debug(
+  const cv::Mat & frame, const std::list<auto_aim::Armor> & armors,
+  const std::vector<debug::ReprojectionData> & reprojections,
+  std::chrono::steady_clock::time_point proc_start,
+  std::chrono::steady_clock::time_point capture_time)
+{
+  const double proc_ms = std::chrono::duration<double, std::milli>(
+    std::chrono::steady_clock::now() - proc_start).count();
+  debug::DebugBus::instance().post({frame, &armors, reprojections, proc_ms, capture_time});
+}
+
+// 程序退出时停止并等待服务线程。
+void shutdown_debug() { debug::DebugBus::instance().shutdown(); }

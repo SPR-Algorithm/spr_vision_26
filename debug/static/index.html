@@ -13,20 +13,23 @@
     padding: 12px 20px; background: #161b22; border-bottom: 1px solid #30363d;
   }
   header h1 { font-size: 16px; font-weight: 600; }
-  #status { font-size: 12px; padding: 3px 10px; border-radius: 12px; background: #21262d; }
-  #status.connected { background: #1a4731; color: #3fb950; }
-  #status.disconnected { background: #3d1f1f; color: #f85149; }
+  .connection-status { font-size: 12px; padding: 3px 10px; border-radius: 12px; background: #21262d; }
+  .connection-status.connected { background: #1a4731; color: #3fb950; }
+  .connection-status.disconnected { background: #3d1f1f; color: #f85149; }
+  .connection-status.stale { background: #3d301b; color: #d29922; }
 
   .layout { display: flex; height: calc(100vh - 49px); }
+  .main-pane { flex: 1; min-width: 0; overflow-y: auto; }
 
   .canvas-wrap {
-    flex: 1; position: relative; background: #010409;
+    height: 46vh; min-height: 220px; position: relative; background: #010409;
     display: flex; align-items: center; justify-content: center;
   }
-  canvas { max-width: 100%; max-height: 100%; display: block; }
+  #canvas { max-width: 100%; max-height: 100%; display: block; }
+  #video-placeholder { position: absolute; font-size: 13px; color: #8b949e; pointer-events: none; }
 
   .sidebar {
-    width: 350px; background: #161b22; border-left: 1px solid #30363d;
+    width: 350px; flex-shrink: 0; background: #161b22; border-left: 1px solid #30363d;
     overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;
   }
 
@@ -68,6 +71,8 @@
   input:checked + .slider:before { transform: translateX(16px); }
 
   #fps-counter { font-size: 11px; color: #8b949e; text-align: right; }
+  .fps-select { background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 4px; padding: 2px 6px; font-size: 12px; }
+  #ekf-card.stale .card-body { opacity: 0.45; }
 
   .param-group { margin-bottom: 10px; }
   .param-group h4 { font-size: 12px; color: #58a6ff; margin-bottom: 6px; padding: 4px 8px; background: #1a2a3a; border-radius: 4px; }
@@ -81,28 +86,73 @@
   .param-tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
   .param-tab { padding: 4px 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; font-size: 11px; color: #8b949e; transition: 0.15s; }
   .param-tab.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+  .param-tab.running { border-color: #3fb950; }
+  .param-tab.running::before { content: '● '; color: #3fb950; }
 
   .param-send-btn { width: 100%; padding: 6px; margin-top: 8px; background: #238636; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
   .param-send-btn:hover { background: #2ea043; }
+  .param-msg { font-size: 11px; margin-top: 6px; min-height: 14px; }
+  .param-msg.ok { color: #3fb950; }
+  .param-msg.err { color: #f85149; }
 
   .mini-stat { display: inline-block; background: #0d1117; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 4px; }
   .preset-btns { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
   .preset-btn { padding: 3px 8px; font-size: 10px; border: 1px solid #30363d; border-radius: 4px; background: #0d1117; color: #8b949e; cursor: pointer; }
   .preset-btn:hover { background: #30363d; color: #e6edf3; }
+
+  .telemetry { padding: 16px; border-top: 1px solid #30363d; }
+  .telemetry-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .telemetry-toolbar h2 { font-size: 14px; margin-right: auto; }
+  .telemetry-info { font-size: 11px; color: #8b949e; line-height: 1.7; margin-bottom: 10px; }
+  .field-picker { background: #161b22; border-radius: 6px; padding: 8px 10px; margin-bottom: 12px; }
+  .field-picker summary { cursor: pointer; font-size: 12px; color: #8b949e; }
+  .field-group { margin-top: 10px; }
+  .field-group h4 { font-size: 11px; color: #8b949e; margin-bottom: 5px; }
+  .field-options { display: flex; gap: 6px 12px; flex-wrap: wrap; }
+  .field-option { display: inline-flex; align-items: center; gap: 5px; color: #c9d1d9; cursor: pointer; font-size: 11px; }
+  .field-option input { accent-color: #58a6ff; }
+  .chart-panel { border: 1px solid #30363d; background: #161b22; padding: 10px; margin-bottom: 12px; border-radius: 6px; }
+  .chart-panel h3 { font-size: 12px; color: #c9d1d9; margin-bottom: 7px; }
+  .chart-canvas { width: 100%; height: 190px; display: block; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 5px 12px; font-size: 10px; margin-top: 7px; }
+  .chart-legend span::before { content: '━ '; }
+  .chart-empty { font-size: 12px; color: #8b949e; padding: 20px 0; }
+  @media (max-width: 900px) {
+    header { gap: 8px; padding: 10px; flex-wrap: wrap; }
+    header h1 { width: 100%; font-size: 14px; }
+    .layout { height: auto; display: block; }
+    .sidebar { width: 100%; border-left: none; border-top: 1px solid #30363d; }
+    .canvas-wrap { height: 40vh; }
+    .telemetry { padding: 10px; }
+  }
 </style>
 </head>
 <body>
 <header>
   <h1>SPR Vision 26 — Parameter Tuner</h1>
-  <span id="status" class="disconnected">disconnected</span>
+  <span id="status" class="connection-status disconnected">视频：未连接</span>
+  <span id="telemetry-status" class="connection-status disconnected">遥测：未连接</span>
   <span id="fps-counter">-- fps</span>
 </header>
 <div class="layout">
-  <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+  <div class="main-pane">
+    <div class="canvas-wrap"><canvas id="canvas"></canvas><span id="video-placeholder">等待视频</span></div>
+    <section class="telemetry" aria-label="规划遥测曲线">
+      <div class="telemetry-toolbar">
+        <h2>规划遥测</h2>
+        <label for="telemetry-window">时间窗口</label>
+        <select id="telemetry-window" class="fps-select"><option value="5">5 s</option><option value="10" selected>10 s</option><option value="30">30 s</option></select>
+        <button id="reset-fields" class="preset-btn" type="button">默认曲线</button>
+      </div>
+      <div id="telemetry-info" class="telemetry-info">等待遥测；视频暂停后曲线仍继续更新。</div>
+      <details class="field-picker"><summary>选择曲线（保留原始字段名称和单位）</summary><div id="telemetry-fields"></div></details>
+      <div id="telemetry-charts"></div>
+    </section>
+  </div>
   <div class="sidebar">
     <!-- EKF 实时状态 -->
     <div class="card" id="ekf-card">
-      <h3 onclick="this.parentElement.classList.toggle('collapsed')">EKF State <span id="ekf-active-set" class="mini-stat" style="color:#3fb950">--</span></h3>
+      <h3 onclick="this.parentElement.classList.toggle('collapsed')">EKF State <span id="ekf-stale" class="mini-stat" style="color:#d29922"></span><span id="ekf-active-set" class="mini-stat" style="color:#3fb950">--</span></h3>
       <div class="card-body">
         <div class="stat"><span>Pos (x,y,z)</span><span class="val" id="ekf-pos">--</span></div>
         <div class="stat"><span>Vel (vx,vy,vz)</span><span class="val" id="ekf-vel">--</span></div>
@@ -123,6 +173,7 @@
         <div id="param-panel"></div>
         <div class="preset-btns" id="preset-btns"></div>
         <button class="param-send-btn" onclick="sendParams()">Apply Parameters</button>
+        <div class="param-msg" id="param-msg"></div>
       </div>
     </div>
 
@@ -130,7 +181,9 @@
     <div class="card">
       <h3>Performance</h3>
       <div class="card-body">
-        <div class="stat"><span>Latency</span><span class="val" id="s-latency">--</span></div>
+        <div class="stat" title="camera.read 返回到 post 的处理耗时"><span>Proc</span><span class="val" id="s-latency">--</span></div>
+        <div class="stat" title="相机采集到服务端编码发出的时间"><span>Frame age</span><span class="val" id="s-age">--</span></div>
+        <div class="stat" title="本页面因网络跟不上被服务端跳过的帧数"><span>Dropped</span><span class="val" id="s-dropped">--</span></div>
         <div class="stat"><span>Detections</span><span class="val" id="s-dets">--</span></div>
         <div class="stat"><span>Frame</span><span class="val" id="s-frame">--</span></div>
       </div>
@@ -147,11 +200,18 @@
       <h3>Display</h3>
       <div class="card-body">
         <div class="controls">
+          <div class="toggle"><span>视频推流</span><label class="switch"><input type="checkbox" id="video-enabled" checked><span class="slider"></span></label></div>
           <div class="toggle"><span>Show keypoints</span><label class="switch"><input type="checkbox" id="show-kpts" checked><span class="slider"></span></label></div>
           <div class="toggle"><span>Show reprojection</span><label class="switch"><input type="checkbox" id="show-reproj" checked><span class="slider"></span></label></div>
           <div class="toggle"><span>Show labels</span><label class="switch"><input type="checkbox" id="show-labels" checked><span class="slider"></span></label></div>
           <label>JPEG quality: <span id="q-val">60</span></label>
           <input type="range" id="quality" min="10" max="95" value="60">
+          <div class="toggle"><span>Stream FPS</span>
+            <select id="stream-fps" class="fps-select">
+              <option>5</option><option>10</option><option>15</option><option selected>30</option><option>60</option>
+            </select>
+          </div>
+          <div style="font-size:11px;color:#8b949e">画质和帧率对所有已连接的页面同时生效</div>
         </div>
       </div>
     </div>
@@ -165,11 +225,17 @@ const COLOR_HEX   = ['#58a6ff','#f85149','#8b949e','#bc8cff'];
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const img = new Image();
+const metaDecoder = new TextDecoder();
 
-let frameCount = 0, lastFpsTime = Date.now(), fps = 0;
-let paramSets = [], activeParamIndex = 0;
+// 收到的帧只保留最新一帧；解码和绘制跟不上时直接跳过旧帧，不排队
+let latestFrame = null, decoding = false, readyFrame = null, drawScheduled = false;
+let lastMeta = null, sidebarDirty = false, drawnCount = 0, lastFpsTime = performance.now();
+// editIndex：用户正在编辑的参数集；runningName：EKF 当前按角速度选中的参数集，两者互不影响
+let paramSets = [], editIndex = 0, runningName = '', applyPending = false;
 let ws = null;
+let videoEnabled = true, videoReconnectTimer = null, videoGeneration = 0;
+let ekfAgeAtReceipt = null, ekfReceivedAt = null;
+const PARAM_KEYS = ['v1','v2','R_yaw','R_pitch','R_distance','angular_velocity_threshold'];
 
 // 预设参数方案
 const PRESETS = {
@@ -180,28 +246,91 @@ const PRESETS = {
 };
 
 function connect() {
-  ws = new WebSocket(`ws://${location.host}/ws`);
+  if (!videoEnabled) return;
+  const socket = new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/ws`);
+  ws = socket;
+  socket.binaryType = 'arraybuffer';
   const s = document.getElementById('status');
-  ws.onopen  = () => { s.textContent='connected'; s.className='connected'; };
-  ws.onclose = () => { s.textContent='disconnected'; s.className='disconnected'; setTimeout(connect,2000); };
-  ws.onmessage = (e) => {
+  s.textContent='视频：连接中'; s.className='connection-status';
+  socket.onopen = () => { if (ws!==socket) return; s.textContent='视频：已连接'; s.className='connection-status connected'; };
+  socket.onclose = () => {
+    if (ws!==socket) return;
+    ws=null; s.textContent='视频：未连接'; s.className='connection-status disconnected';
+    if (videoEnabled) videoReconnectTimer=setTimeout(connect,2000);
+  };
+  socket.onmessage = (e) => {
+    if (ws!==socket || !videoEnabled) return;
     try {
+      if (e.data instanceof ArrayBuffer) { onFrame(e.data); return; }
       const msg = JSON.parse(e.data);
-      if (msg.type==='ekf_state' && msg.data) updateEKFState(msg.data);
-      else if (msg.type==='param_sets' && msg.data) { paramSets=msg.data; renderParamTabs(); renderParamPanel(); renderPresets(); }
-      else if (msg.frame) { renderFrame(msg); updateSidebar(msg); frameCount++; }
+      if (msg.type==='ekf_state' && msg.data) updateEKFState(msg.data, msg.age_ms);
+      else if (msg.type==='stream') updateStreamControls(msg);
+      else if (msg.type==='param_sets' && msg.data) {
+        paramSets=msg.data;
+        if (!runningName) { const a=paramSets.find(p=>p.active); if (a) runningName=a.name; }
+        if (editIndex>=paramSets.length) editIndex=0;
+        renderParamTabs(); renderParamPanel(); renderPresets();
+        if (applyPending) { applyPending=false; showParamMsg('Applied', true); }
+      }
+      else if (msg.type==='error') { applyPending=false; showParamMsg('Rejected: '+msg.msg, false); }
     } catch {}
   };
 }
 
-function renderFrame(data) {
-  img.onload = () => {
-    canvas.width=img.naturalWidth; canvas.height=img.naturalHeight;
-    ctx.drawImage(img,0,0);
-    if (document.getElementById('show-kpts').checked) drawDetections(data.detections||[]);
-    if (document.getElementById('show-reproj').checked) drawReprojections(data.reprojections||[]);
-  };
-  img.src='data:image/jpeg;base64,'+data.frame;
+function setVideoEnabled(enabled) {
+  videoEnabled=enabled; videoGeneration++;
+  clearTimeout(videoReconnectTimer);
+  latestFrame=null;
+  if (readyFrame) { readyFrame.bmp.close(); readyFrame=null; }
+  const old=ws; ws=null;
+  if (old) old.close();
+  const placeholder=document.getElementById('video-placeholder');
+  placeholder.hidden=false; placeholder.textContent=enabled?'等待视频':'视频已暂停，遥测继续';
+  if (enabled) connect();
+  else {
+    document.getElementById('status').textContent='视频：已暂停';
+    document.getElementById('status').className='connection-status';
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+}
+
+// 二进制帧布局：uint32 小端元数据长度 | 元数据 JSON | JPEG
+function onFrame(buf) {
+  if (buf.byteLength<4) return;
+  const metaLen = new DataView(buf).getUint32(0, true);
+  if (metaLen>buf.byteLength-4) return;
+  const meta = JSON.parse(metaDecoder.decode(new Uint8Array(buf, 4, metaLen)));
+  latestFrame = { meta, jpeg: new Blob([new Uint8Array(buf, 4 + metaLen)], { type: 'image/jpeg' }) };
+  if (!decoding) decodeLatest();
+}
+
+async function decodeLatest() {
+  decoding = true;
+  while (latestFrame) {
+    const f = latestFrame; latestFrame = null;
+    const generation=videoGeneration;
+    try {
+      const bmp = await createImageBitmap(f.jpeg);
+      if (!videoEnabled || generation!==videoGeneration) { bmp.close(); continue; }
+      if (readyFrame) readyFrame.bmp.close();
+      readyFrame = { bmp, meta: f.meta };
+      if (!drawScheduled) { drawScheduled = true; requestAnimationFrame(drawFrame); }
+    } catch (err) { console.warn('decode failed', err); }
+  }
+  decoding = false;
+}
+
+function drawFrame() {
+  drawScheduled = false;
+  const f = readyFrame; readyFrame = null;
+  if (!f) return;
+  document.getElementById('video-placeholder').hidden=true;
+  if (canvas.width!==f.bmp.width || canvas.height!==f.bmp.height) { canvas.width=f.bmp.width; canvas.height=f.bmp.height; }
+  ctx.drawImage(f.bmp, 0, 0);
+  f.bmp.close();
+  if (document.getElementById('show-kpts').checked) drawDetections(f.meta.detections||[]);
+  if (document.getElementById('show-reproj').checked) drawReprojections(f.meta.reprojections||[]);
+  lastMeta = f.meta; sidebarDirty = true; drawnCount++;
 }
 
 function drawDetections(dets) {
@@ -230,10 +359,15 @@ function drawReprojections(reproj) {
 }
 
 function updateSidebar(data) {
-  const lat=data.latency_ms||0, el=document.getElementById('s-latency');
+  const lat=data.proc_ms||0, el=document.getElementById('s-latency');
   el.textContent=lat.toFixed(1)+' ms'; el.className='val '+(lat<10?'ok':lat<20?'':'warn');
+  const ageEl=document.getElementById('s-age');
+  if (data.age_ms!==undefined) { ageEl.textContent=data.age_ms.toFixed(1)+' ms'; ageEl.className='val '+(data.age_ms<20?'ok':data.age_ms<50?'':'warn'); }
+  else { ageEl.textContent='--'; ageEl.className='val'; }
+  const dropEl=document.getElementById('s-dropped');
+  dropEl.textContent=data.dropped; dropEl.className='val '+(data.dropped?'warn':'ok');
   document.getElementById('s-dets').textContent=(data.detections||[]).length;
-  document.getElementById('s-frame').textContent=data.frame?(data.frame.length*0.75/1024).toFixed(1)+' KB':'--';
+  document.getElementById('s-frame').textContent=`${data.w}x${data.h}, ${(data.jpeg_bytes/1024).toFixed(1)} KB`;
   const list=document.getElementById('det-list'); list.innerHTML='';
   (data.detections||[]).forEach(d=>{
     const div=document.createElement('div'); div.className='det-item '+(d.color===1?'red':'blue');
@@ -242,7 +376,12 @@ function updateSidebar(data) {
   });
 }
 
-function updateEKFState(s) {
+const EKF_STALE_MS = 300;
+
+function updateEKFState(s, ageMs) {
+  ekfAgeAtReceipt = Number.isFinite(ageMs) ? ageMs : null;
+  ekfReceivedAt = performance.now();
+  updateEKFStale();
   document.getElementById('ekf-pos').textContent=`${s.x.toFixed(3)}, ${s.y.toFixed(3)}, ${s.z.toFixed(3)}`;
   document.getElementById('ekf-vel').textContent=`${s.vx.toFixed(3)}, ${s.vy.toFixed(3)}, ${s.vz.toFixed(3)}`;
   document.getElementById('ekf-yaw-w').textContent=`${(s.yaw*180/Math.PI).toFixed(1)}° / ${s.w.toFixed(3)} rad/s`;
@@ -254,26 +393,65 @@ function updateEKFState(s) {
   nisEl.className='val '+(s.converged?'good':'warn');
   document.getElementById('ekf-active-set').textContent='['+(s.active_param_set||'--')+']';
   if (s.P_diag&&s.P_dim) document.getElementById('ekf-pdiag').textContent='P_diag: '+s.P_diag.slice(0,s.P_dim).map(v=>v.toExponential(1)).join(', ');
-  activeParamIndex=paramSets.findIndex(p=>p.name===s.active_param_set);
-  if (activeParamIndex>=0) { document.querySelectorAll('.param-tab').forEach((el,i)=>el.classList.toggle('active',i===activeParamIndex)); }
+  if (s.active_param_set && s.active_param_set!==runningName) { runningName=s.active_param_set; updateRunningMarks(); }
+}
+
+function updateEKFStale() {
+  const stale = ekfAgeAtReceipt !== null &&
+    ekfAgeAtReceipt + performance.now() - ekfReceivedAt > EKF_STALE_MS;
+  document.getElementById('ekf-card').classList.toggle('stale', stale);
+  document.getElementById('ekf-stale').textContent = stale ? 'STALE' : '';
+}
+
+function updateStreamControls(stream) {
+  if (Number.isInteger(stream.jpeg_quality)) {
+    document.getElementById('quality').value = stream.jpeg_quality;
+    document.getElementById('q-val').textContent = stream.jpeg_quality;
+  }
+  if (Number.isInteger(stream.max_fps)) {
+    const select = document.getElementById('stream-fps');
+    // 配置可使用列表以外的帧率；保留并显示服务端的实际值。
+    const custom = select.querySelector('[data-custom]');
+    if (custom) custom.remove();
+    if (![...select.options].some(option => Number(option.value) === stream.max_fps)) {
+      const option = document.createElement('option');
+      option.value = option.textContent = stream.max_fps;
+      option.dataset.custom = 'true';
+      select.appendChild(option);
+    }
+    select.value = stream.max_fps;
+  }
+}
+
+function setStream(settings) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({cmd: 'set_stream', ...settings}));
+  }
+}
+
+function updateRunningMarks() {
+  document.querySelectorAll('.param-tab').forEach((el,i)=>el.classList.toggle('running',paramSets[i]&&paramSets[i].name===runningName));
+  const h=document.getElementById('param-set-title');
+  if (h&&paramSets[editIndex]) h.classList.toggle('active',paramSets[editIndex].name===runningName);
 }
 
 function renderParamTabs() {
   const tabs=document.getElementById('param-tabs'); tabs.innerHTML='';
   paramSets.forEach((ps,i)=>{
-    const tab=document.createElement('div'); tab.className='param-tab'+(ps.active?' active':'');
+    const tab=document.createElement('div');
+    tab.className='param-tab'+(i===editIndex?' active':'')+(ps.name===runningName?' running':'');
     tab.textContent=ps.name+' (<'+ps.angular_velocity_threshold.toFixed(1)+')';
-    tab.onclick=()=>{ activeParamIndex=i; document.querySelectorAll('.param-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); renderParamPanel(); };
+    tab.onclick=()=>{ editIndex=i; renderParamTabs(); renderParamPanel(); };
     tabs.appendChild(tab);
   });
 }
 
 function renderParamPanel() {
   const panel=document.getElementById('param-panel');
-  if (!paramSets.length||activeParamIndex>=paramSets.length) { panel.innerHTML='<div style="color:#8b949e;font-size:12px;padding:8px;">No parameter sets loaded</div>'; return; }
-  const ps=paramSets[activeParamIndex];
+  if (!paramSets.length||editIndex>=paramSets.length) { panel.innerHTML='<div style="color:#8b949e;font-size:12px;padding:8px;">No parameter sets loaded</div>'; return; }
+  const ps=paramSets[editIndex];
   panel.innerHTML=`
-    <div class="param-group"><h4 class="${ps.active?'active':''}">Set [${activeParamIndex}]: ${ps.name}</h4>
+    <div class="param-group"><h4 id="param-set-title" class="${ps.name===runningName?'active':''}">Editing [${editIndex}]: ${ps.name}</h4>
       ${sliderRow('v1','v1 (pos noise)',ps.v1,1,2000,1)}
       ${sliderRow('v2','v2 (ang noise)',ps.v2,0.1,2000,0.1)}
       ${sliderRow('R_yaw','R_yaw',ps.R_yaw,0.0001,0.1,0.0001)}
@@ -306,8 +484,8 @@ function renderPresets() {
 }
 
 function applyPreset(vals) {
-  if (activeParamIndex>=paramSets.length) return;
-  ['v1','v2','R_yaw','R_pitch','R_distance','angular_velocity_threshold'].forEach(k=>{
+  if (editIndex>=paramSets.length) return;
+  PARAM_KEYS.forEach(k=>{
     const key = k === 'angular_velocity_threshold' ? 'threshold' : k;
     const v = vals[key];
     if (v !== undefined) {
@@ -317,26 +495,262 @@ function applyPreset(vals) {
   });
 }
 
+function showParamMsg(text, ok) {
+  const el=document.getElementById('param-msg');
+  el.textContent=text; el.className='param-msg '+(ok?'ok':'err');
+}
+
 function sendParams() {
-  if (!ws||ws.readyState!==WebSocket.OPEN) { alert('Not connected!'); return; }
-  const ps=paramSets[activeParamIndex];
-  const gv=(n,f)=>{ const el=document.getElementById('num-'+n); return el?parseFloat(el.value):f; };
-  ws.send(JSON.stringify({
-    cmd:'update_param', index:activeParamIndex,
-    v1:gv('v1',ps.v1), v2:gv('v2',ps.v2),
-    R_yaw:gv('R_yaw',ps.R_yaw), R_pitch:gv('R_pitch',ps.R_pitch),
-    R_distance:gv('R_distance',ps.R_distance),
-    angular_velocity_threshold:gv('angular_velocity_threshold',ps.angular_velocity_threshold)
-  }));
-  console.log('Params sent');
+  if (!ws||ws.readyState!==WebSocket.OPEN) { showParamMsg(videoEnabled?'Not connected':'请开启视频连接后调参', false); return; }
+  if (editIndex<0||editIndex>=paramSets.length) { showParamMsg('No parameter set selected', false); return; }
+  const payload={cmd:'update_param', index:editIndex};
+  for (const k of PARAM_KEYS) {
+    const el=document.getElementById('num-'+k);
+    const v=el?Number(el.value):NaN;
+    if (!el||el.value.trim()===''||!Number.isFinite(v)||v<=0) { showParamMsg(k+' must be a positive number', false); return; }
+    payload[k]=v;
+  }
+  applyPending=true;
+  ws.send(JSON.stringify(payload));
+  showParamMsg('Sent, waiting for server...', true);
+}
+
+// 遥测与视频独立连接；有界环形缓冲始终只保留最近 3000 个样本。
+const TELEMETRY_CAPACITY=3000, TELEMETRY_STALE_MS=500;
+const TELEMETRY_CHARTS={
+  yaw:{title:'Yaw',unit:'rad'}, pitch:{title:'Pitch',unit:'rad'},
+  yaw_vel:{title:'Yaw velocity',unit:'rad/s'}, pitch_vel:{title:'Pitch velocity',unit:'rad/s'},
+  w:{title:'Target angular velocity',unit:'rad/s'}, vz:{title:'Target vertical velocity',unit:'m/s'},
+  yaw_acc:{title:'Yaw acceleration',unit:'rad/s²'}, pitch_acc:{title:'Pitch acceleration',unit:'rad/s²'},
+  z:{title:'Target height',unit:'m'}, z_var:{title:'Target height variance',unit:'m²'},
+  status:{title:'Control / target state',unit:'0 / 1'},
+  ids:{title:'Armor ID',unit:'ID'}, count:{title:'Target update count',unit:'count'}
+};
+const TELEMETRY_FIELDS=[
+  ['gimbal_yaw','角度','yaw','#58a6ff',true],
+  ['target_yaw','角度','yaw','#3fb950',true],
+  ['plan_yaw','角度','yaw','#ffa657',true],
+  ['gimbal_pitch','角度','pitch','#58a6ff',true],
+  ['target_pitch','角度','pitch','#3fb950',true],
+  ['plan_pitch','角度','pitch','#ffa657',true],
+  ['gimbal_yaw_vel','速度','yaw_vel','#58a6ff'],
+  ['plan_yaw_vel','速度','yaw_vel','#ffa657'],
+  ['gimbal_pitch_vel','速度','pitch_vel','#58a6ff'],
+  ['plan_pitch_vel','速度','pitch_vel','#ffa657'],
+  ['w','速度','w','#bc8cff'],
+  ['target_vz','速度','vz','#3fb950'],
+  ['plan_yaw_acc','加速度','yaw_acc','#ffa657'],
+  ['plan_pitch_acc','加速度','pitch_acc','#ffa657'],
+  ['target_z','位置','z','#3fb950'],
+  ['target_z0','位置','z','#58a6ff'],
+  ['target_z1','位置','z','#ffa657'],
+  ['target_z2','位置','z','#bc8cff'],
+  ['target_z0_var','位置','z_var','#58a6ff'],
+  ['target_z1_var','位置','z_var','#ffa657'],
+  ['target_z2_var','位置','z_var','#bc8cff'],
+  ['fire','状态','status','#ffa657'],
+  ['fired','状态','status','#f85149'],
+  ['control','状态','status','#58a6ff'],
+  ['target_valid','状态','status','#3fb950'],
+  ['outpost_valid','状态','status','#bc8cff'],
+  ['target_jumped','状态','status','#f2cc60'],
+  ['target_last_id','状态','ids','#58a6ff'],
+  ['reprojection_aim_id','状态','ids','#ffa657'],
+  ['target_update_count','状态','count','#3fb950']
+].map(([key,group,chart,color,selected=false])=>({key,group,chart,color,selected,defaultSelected:selected}));
+
+const telemetryRing=new Array(TELEMETRY_CAPACITY);
+let telemetryStart=0, telemetryCount=0, telemetryReceivedAt=null, telemetrySocket=null;
+let telemetryDirty=true, telemetryPanels=[], telemetryDrops={full:0,expired:0,client:0};
+let telemetryReconnectTimer=null;
+
+function telemetryAt(index) { return telemetryRing[(telemetryStart+index)%TELEMETRY_CAPACITY]; }
+function clearTelemetry() {
+  telemetryRing.fill(undefined); telemetryStart=0; telemetryCount=0; telemetryReceivedAt=null;
+  telemetryDrops={full:0,expired:0,client:0}; telemetryDirty=true;
+}
+function appendTelemetry(sample) {
+  if (!sample || !Number.isFinite(sample.seq) || !Number.isFinite(sample.t)) return;
+  for (const key of ['control','target_valid','outpost_valid']) {
+    if (typeof sample[key]==='boolean') sample[key]=sample[key]?1:0;
+  }
+  const previous=telemetryCount?telemetryAt(telemetryCount-1):null;
+  if (previous && sample.seq<=previous.seq) return;
+  if (telemetryCount===TELEMETRY_CAPACITY) {
+    telemetryRing[telemetryStart]=sample; telemetryStart=(telemetryStart+1)%TELEMETRY_CAPACITY;
+  } else {
+    telemetryRing[(telemetryStart+telemetryCount)%TELEMETRY_CAPACITY]=sample; telemetryCount++;
+  }
+}
+function connectTelemetry() {
+  clearTimeout(telemetryReconnectTimer);
+  const socket=new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}/ws/telemetry`);
+  telemetrySocket=socket; updateTelemetryStatus();
+  socket.onopen=()=>{ if (telemetrySocket!==socket) return; clearTelemetry(); updateTelemetryStatus(); };
+  socket.onmessage=(event)=>{
+    if (telemetrySocket!==socket || typeof event.data!=='string') return;
+    try {
+      const batch=JSON.parse(event.data);
+      if (batch.type!=='telemetry' || !Array.isArray(batch.samples)) return;
+      const last=telemetryCount?telemetryAt(telemetryCount-1):null;
+      for (const sample of batch.samples) appendTelemetry(sample);
+      const newest=telemetryCount?telemetryAt(telemetryCount-1):null;
+      if (newest && newest!==last) telemetryReceivedAt=performance.now();
+      if (batch.dropped) telemetryDrops=batch.dropped;
+      telemetryDirty=true; updateTelemetryStatus();
+    } catch (error) { console.warn('Invalid telemetry message',error); }
+  };
+  socket.onclose=()=>{
+    if (telemetrySocket!==socket) return;
+    telemetrySocket=null; updateTelemetryStatus();
+    telemetryReconnectTimer=setTimeout(connectTelemetry,2000);
+  };
+}
+function updateTelemetryStatus() {
+  const el=document.getElementById('telemetry-status');
+  const connected=telemetrySocket && telemetrySocket.readyState===WebSocket.OPEN;
+  const stale=telemetryReceivedAt!==null && performance.now()-telemetryReceivedAt>TELEMETRY_STALE_MS;
+  el.className='connection-status '+(connected?(stale?'stale':'connected'):'disconnected');
+  el.textContent=connected?(stale?'遥测：已过期':telemetryReceivedAt===null?'遥测：等待样本':'遥测：实时'):'遥测：未连接';
+  const newest=telemetryCount?telemetryAt(telemetryCount-1):null;
+  document.getElementById('telemetry-info').textContent=newest?
+    `t = ${newest.t.toFixed(3)} s · seq ${newest.seq} · ${telemetryCount} / ${TELEMETRY_CAPACITY} 样本 · 丢弃：队列 ${telemetryDrops.full||0} / 过期 ${telemetryDrops.expired||0} / 本连接 ${telemetryDrops.client||0}`:
+    '等待遥测；视频暂停后曲线仍继续更新。';
+}
+function renderTelemetryFields() {
+  const container=document.getElementById('telemetry-fields'); container.replaceChildren();
+  for (const group of ['角度','速度','加速度','位置','状态']) {
+    const section=document.createElement('div'); section.className='field-group';
+    const title=document.createElement('h4'); title.textContent=group; section.appendChild(title);
+    const options=document.createElement('div'); options.className='field-options';
+    for (const field of TELEMETRY_FIELDS.filter(field=>field.group===group)) {
+      const label=document.createElement('label'); label.className='field-option';
+      const input=document.createElement('input'); input.type='checkbox'; input.checked=field.selected; input.dataset.field=field.key;
+      input.onchange=()=>{ field.selected=input.checked; rebuildTelemetryCharts(); };
+      label.append(input,document.createTextNode(`${field.key} (${TELEMETRY_CHARTS[field.chart].unit})`)); options.appendChild(label);
+    }
+    section.appendChild(options); container.appendChild(section);
+  }
+}
+function rebuildTelemetryCharts() {
+  const container=document.getElementById('telemetry-charts'); container.replaceChildren(); telemetryPanels=[];
+  for (const [key,settings] of Object.entries(TELEMETRY_CHARTS)) {
+    const fields=TELEMETRY_FIELDS.filter(field=>field.selected && field.chart===key);
+    if (!fields.length) continue;
+    const panel=document.createElement('div'); panel.className='chart-panel';
+    const title=document.createElement('h3'); title.textContent=`${settings.title} (${settings.unit})`;
+    const plot=document.createElement('canvas'); plot.className='chart-canvas'; plot.setAttribute('aria-label',title.textContent);
+    const legend=document.createElement('div'); legend.className='chart-legend';
+    const labels=fields.map(field=>{
+      const label=document.createElement('span'); label.style.color=field.color; legend.appendChild(label); return label;
+    });
+    panel.append(title,plot,legend); container.appendChild(panel);
+    telemetryPanels.push({fields,settings,canvas:plot,labels});
+  }
+  if (!telemetryPanels.length) {
+    const empty=document.createElement('div'); empty.className='chart-empty'; empty.textContent='请在“选择曲线”中勾选需要显示的字段。'; container.appendChild(empty);
+  }
+  telemetryDirty=true;
+}
+function telemetryTime(sample) {
+  return Number.isFinite(sample.monotonic_ms)?sample.monotonic_ms/1000:sample.t;
+}
+function plotTelemetry(panel,startIndex,endTime,windowSeconds) {
+  const plot=panel.canvas, width=plot.clientWidth, height=plot.clientHeight;
+  if (!width || !height) return;
+  const ratio=window.devicePixelRatio||1;
+  const pixelWidth=Math.round(width*ratio),pixelHeight=Math.round(height*ratio);
+  if (plot.width!==pixelWidth || plot.height!==pixelHeight) { plot.width=pixelWidth; plot.height=pixelHeight; }
+  const c=plot.getContext('2d'); c.setTransform(ratio,0,0,ratio,0,0); c.clearRect(0,0,width,height);
+  const left=70,right=12,top=12,bottom=25,plotWidth=width-left-right,plotHeight=height-top-bottom;
+  if (plotWidth<=0) return;
+  let low=Infinity,high=-Infinity;
+  for (let i=startIndex;i<telemetryCount;i++) {
+    const sample=telemetryAt(i);
+    for (const field of panel.fields) {
+      const value=sample[field.key]; if (!Number.isFinite(value)) continue;
+      low=Math.min(low,value); high=Math.max(high,value);
+    }
+  }
+  if (!Number.isFinite(low)) { low=-1; high=1; }
+  else { const margin=(high-low)*0.1||Math.max(Math.abs(low)*0.05,0.01); low-=margin; high+=margin; }
+  if (panel.settings.unit==='0 / 1') { low=-0.1; high=1.1; }
+  const format=value=>Math.abs(value)>=10000 || (value!==0 && Math.abs(value)<0.001)?value.toExponential(1):Number(value.toFixed(3)).toString();
+  c.font='10px monospace'; c.lineWidth=1;
+  for (let i=0;i<=4;i++) {
+    const y=top+plotHeight*i/4;
+    c.beginPath(); c.moveTo(left,y); c.lineTo(width-right,y); c.strokeStyle='#30363d'; c.stroke();
+    c.fillStyle='#8b949e'; c.textAlign='right'; c.fillText(format(high-(high-low)*i/4),left-7,y+3);
+  }
+  for (let i=0;i<=4;i++) {
+    const x=left+plotWidth*i/4;
+    c.fillStyle='#8b949e'; c.textAlign=i===4?'right':i===0?'left':'center';
+    c.fillText(`${Number((-windowSeconds+windowSeconds*i/4).toFixed(1))} s`,x,height-6);
+  }
+  c.save(); c.beginPath(); c.rect(left,top,plotWidth,plotHeight); c.clip();
+  for (const field of panel.fields) {
+    c.beginPath(); c.strokeStyle=field.color; c.lineWidth=1.5;
+    let previous=null,previousY=0;
+    for (let i=startIndex;i<telemetryCount;i++) {
+      const sample=telemetryAt(i),value=sample[field.key],time=telemetryTime(sample);
+      if (!Number.isFinite(value) || !Number.isFinite(time)) { previous=null; continue; }
+      const x=left+(time-endTime+windowSeconds)/windowSeconds*plotWidth;
+      const y=top+(high-value)/(high-low)*plotHeight;
+      if (previous && sample.seq===previous.seq+1 && time>telemetryTime(previous)) {
+        if (panel.settings.unit==='0 / 1') { c.lineTo(x,previousY); c.lineTo(x,y); }
+        else c.lineTo(x,y);
+      } else { c.moveTo(x,y); c.lineTo(x+0.2,y); }
+      previous=sample; previousY=y;
+    }
+    c.stroke();
+  }
+  c.restore();
+  const newest=telemetryCount?telemetryAt(telemetryCount-1):null;
+  panel.fields.forEach((field,index)=>{
+    const value=newest?newest[field.key]:null;
+    panel.labels[index].textContent=`${field.key}: ${Number.isFinite(value)?format(value):'--'}`;
+  });
+  if (!telemetryCount) {
+    c.fillStyle='#8b949e'; c.textAlign='center'; c.fillText('等待遥测数据',left+plotWidth/2,top+plotHeight/2);
+  }
+}
+function paintTelemetry() {
+  if (document.hidden || !telemetryDirty) return;
+  telemetryDirty=false;
+  const windowSeconds=Number(document.getElementById('telemetry-window').value);
+  const endTime=telemetryCount?telemetryTime(telemetryAt(telemetryCount-1)):0;
+  let startIndex=0;
+  while (startIndex<telemetryCount && telemetryTime(telemetryAt(startIndex))<endTime-windowSeconds) startIndex++;
+  for (const panel of telemetryPanels) plotTelemetry(panel,startIndex,endTime,windowSeconds);
 }
 
 setInterval(()=>{
-  const now=Date.now(); fps=frameCount/((now-lastFpsTime)/1000); frameCount=0; lastFpsTime=now;
+  const now=performance.now(), fps=drawnCount/((now-lastFpsTime)/1000); drawnCount=0; lastFpsTime=now;
   document.getElementById('fps-counter').textContent=fps.toFixed(1)+' fps';
 },1000);
-document.getElementById('quality').addEventListener('input',function(){ document.getElementById('q-val').textContent=this.value; });
+setInterval(()=>{ if (sidebarDirty&&lastMeta) { sidebarDirty=false; updateSidebar(lastMeta); } },100);
+let qualityTimer;
+document.getElementById('quality').addEventListener('input',function(){
+  document.getElementById('q-val').textContent=this.value;
+  clearTimeout(qualityTimer);
+  const quality = Number(this.value);
+  qualityTimer = setTimeout(() => setStream({jpeg_quality: quality}), 150);
+});
+document.getElementById('stream-fps').addEventListener('change',function(){
+  setStream({max_fps: Number(this.value)});
+});
+setInterval(updateEKFStale, 100);
+document.getElementById('video-enabled').addEventListener('change',event=>setVideoEnabled(event.target.checked));
+document.getElementById('telemetry-window').addEventListener('change',()=>{ telemetryDirty=true; });
+document.getElementById('reset-fields').addEventListener('click',()=>{
+  TELEMETRY_FIELDS.forEach(field=>{ field.selected=field.defaultSelected; }); renderTelemetryFields(); rebuildTelemetryCharts();
+});
+document.addEventListener('visibilitychange',()=>{ if (!document.hidden) telemetryDirty=true; });
+window.addEventListener('resize',()=>{ telemetryDirty=true; });
+setInterval(()=>{ if (!document.hidden) { updateTelemetryStatus(); paintTelemetry(); } },50);
+renderTelemetryFields(); rebuildTelemetryCharts();
 connect();
+connectTelemetry();
 </script>
 </body>
 </html>

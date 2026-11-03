@@ -27,6 +27,9 @@ debug_bus:
       enabled: true
       port: 8080
       bind: "0.0.0.0"
+      max_fps: 30        # 推流帧率上限，网页上可临时修改
+      jpeg_quality: 60   # 10 ~ 95
+      max_width: 640     # 图像宽度超过时等比缩小后再编码
 
 
 #####-----ROI-----#####

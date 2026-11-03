@@ -99,7 +99,7 @@ add_executable(sentry_multithread_noros src/sentry_multithread_noros.cpp)
 target_link_libraries(standard ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 # target_link_libraries(mt_standard ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 target_link_libraries(standard_mpc ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
-target_link_libraries(auto_aim_debug_mpc ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io web_debugger)
+target_link_libraries(auto_aim_debug_mpc ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim tools io web_debugger)
 target_link_libraries(mt_auto_aim_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 target_link_libraries(auto_buff_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io ${CERES_LIBRARIES})
 target_link_libraries(auto_buff_debug_mpc ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io ${CERES_LIBRARIES})
@@ -123,14 +123,20 @@ target_link_libraries(split_video ${OpenCV_LIBS} fmt::fmt tools)
 ##################tests##################
 include(CTest)
 
+add_executable(web_debugger_stress_test tests/web_debugger_stress_test.cpp tools/logger.cpp)
+add_executable(web_debugger_copy_benchmark tests/web_debugger_copy_benchmark.cpp)
 add_executable(auto_aim_test tests/auto_aim_test.cpp)
 add_executable(auto_buff_test tests/auto_buff_test.cpp)
-add_executable(buff_observation_test tests/buff_observation_test.cpp)
+if(EXISTS "${PROJECT_SOURCE_DIR}/tests/buff_observation_test.cpp")
+  add_executable(buff_observation_test tests/buff_observation_test.cpp)
+endif()
 add_executable(buff_processor_protocol_test tests/buff_processor_protocol_test.cpp)
 add_executable(buff_detector_adapter_test tests/buff_detector_adapter_test.cpp)
 add_executable(buff_detector_test tests/buff_detector_test.cpp)
 add_executable(buff_refiner_video_test tests/buff_refiner_video_test.cpp)
-add_executable(yolo11_buff_video_test tests/yolo11_buff_video_test.cpp)
+if(EXISTS "${PROJECT_SOURCE_DIR}/tests/yolo11_buff_video_test.cpp")
+  add_executable(yolo11_buff_video_test tests/yolo11_buff_video_test.cpp)
+endif()
 add_executable(camera_detect_test tests/camera_detect_test.cpp)
 add_executable(camera_test tests/camera_test.cpp)
 add_executable(camera_thread_test tests/camera_thread_test.cpp)
@@ -146,14 +152,20 @@ add_executable(handeye_test tests/handeye_test.cpp)
 add_executable(dm_test tests/dm_test.cpp)
 add_executable(minimum_vision_system tests/minimum_vision_system.cpp)
 
+target_link_libraries(web_debugger_stress_test ${OpenCV_LIBS} fmt::fmt spdlog::spdlog yaml-cpp web_debugger)
+target_link_libraries(web_debugger_copy_benchmark ${OpenCV_LIBS} nlohmann_json::nlohmann_json)
 target_link_libraries(auto_aim_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
 target_link_libraries(auto_buff_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
-target_link_libraries(buff_observation_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+if(TARGET buff_observation_test)
+  target_link_libraries(buff_observation_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+endif()
 target_link_libraries(buff_processor_protocol_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
 target_link_libraries(buff_detector_adapter_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
 target_link_libraries(buff_detector_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
 target_link_libraries(buff_refiner_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
-target_link_libraries(yolo11_buff_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
+if(TARGET yolo11_buff_video_test)
+  target_link_libraries(yolo11_buff_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
+endif()
 target_link_libraries(camera_detect_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools auto_aim io)
 target_link_libraries(camera_test ${OpenCV_LIBS} fmt::fmt tools io)
 target_link_libraries(camera_thread_test ${OpenCV_LIBS} fmt::fmt auto_aim tools io)
@@ -170,13 +182,20 @@ target_link_libraries(dm_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io)
 target_link_libraries(minimum_vision_system ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
 
 if(BUILD_TESTING)
-  add_test(NAME buff_observation_test COMMAND buff_observation_test)
-  set_tests_properties(
-    buff_observation_test
-    PROPERTIES
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      LABELS "unit;headless;auto_buff"
-      TIMEOUT 10)
+  add_test(NAME web_debugger_stress_test COMMAND web_debugger_stress_test)
+  set_tests_properties(web_debugger_stress_test PROPERTIES
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    LABELS "integration;headless;web_debugger"
+    TIMEOUT 30)
+  if(TARGET buff_observation_test)
+    add_test(NAME buff_observation_test COMMAND buff_observation_test)
+    set_tests_properties(
+      buff_observation_test
+      PROPERTIES
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        LABELS "unit;headless;auto_buff"
+        TIMEOUT 10)
+  endif()
 endif()
 
 

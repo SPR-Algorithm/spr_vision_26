@@ -1,9 +1,12 @@
 #include "param_tuner.hpp"
 
+#include <fmt/format.h>
 #include <yaml-cpp/yaml.h>
 
 #include <cmath>
+#include <nlohmann/json.hpp>
 #include <sstream>
+#include <utility>
 
 #include "tools/logger.hpp"
 
@@ -55,7 +58,7 @@ void ParamTuner::load_from_yaml(const std::string & config_path)
   }
 }
 
-const FilterParamSet & ParamTuner::select(double angular_velocity) const
+FilterParamSet ParamTuner::select(double angular_velocity) const
 {
   std::lock_guard<std::mutex> lk(mutex_);
 
@@ -145,9 +148,8 @@ std::string ParamTuner::param_sets_to_json() const
   return ss.str();
 }
 
-std::string ParamTuner::ekf_state_to_json() const
+std::string ParamTuner::ekf_state_to_json(const EKFStateData & s)
 {
-  EKFStateData s = latest_ekf_state();
 
   std::ostringstream ss;
   ss << "{"
@@ -183,57 +185,76 @@ std::string ParamTuner::ekf_state_to_json() const
   return ss.str();
 }
 
-void ParamTuner::update_from_json(const std::string & json)
+bool ParamTuner::update_from_json(const std::string & json, std::string & err)
 {
-  // 简单 JSON 解析：查找 "cmd":"update_param" 和参数
-  // 格式: {"cmd":"update_param","index":0,"v1":100,...}
-  // 使用简单的字符串查找而非完整 JSON 解析器
-
-  if (json.find("\"cmd\":\"update_param\"") == std::string::npos &&
-      json.find("\"cmd\": \"update_param\"") == std::string::npos) {
-    return;
+  const auto msg = nlohmann::json::parse(json, nullptr, false);
+  if (msg.is_discarded() || !msg.is_object()) {
+    err = "invalid JSON";
+    return false;
   }
 
-  // 简单的手动解析（避免引入 nlohmann_json 依赖）
-  auto find_val = [&](const std::string & key) -> std::string {
-    auto pos = json.find("\"" + key + "\":");
-    if (pos == std::string::npos) {
-      pos = json.find("\"" + key + "\": ");
-      if (pos == std::string::npos) return "";
-    }
-    pos = json.find(":", pos) + 1;
-    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) ++pos;
-    auto end = json.find_first_of(",}\n\r", pos);
-    return json.substr(pos, end - pos);
+  const auto cmd = msg.find("cmd");
+  if (cmd == msg.end() || !cmd->is_string() || cmd->get<std::string>() != "update_param") {
+    err = "unknown cmd";
+    return false;
+  }
+
+  const auto index_it = msg.find("index");
+  if (index_it == msg.end() || !index_it->is_number_integer()) {
+    err = "index must be an integer";
+    return false;
+  }
+  const auto index = index_it->get<long long>();
+
+  static const std::pair<const char *, double FilterParamSet::*> fields[] = {
+    {"v1", &FilterParamSet::v1},
+    {"v2", &FilterParamSet::v2},
+    {"R_yaw", &FilterParamSet::R_yaw},
+    {"R_pitch", &FilterParamSet::R_pitch},
+    {"R_distance", &FilterParamSet::R_distance},
+    {"angular_velocity_threshold", &FilterParamSet::angular_velocity_threshold},
   };
-
-  auto index_str = find_val("index");
-  if (index_str.empty()) return;
-
-  int index = std::stoi(index_str);
 
   FilterParamSet ps;
   {
     std::lock_guard<std::mutex> lk(mutex_);
-    if (index < 0 || index >= static_cast<int>(param_sets_.size())) return;
+    if (index < 0 || index >= static_cast<long long>(param_sets_.size())) {
+      err = fmt::format("index {} out of range", index);
+      return false;
+    }
     ps = param_sets_[index];
+
+    for (const auto & [key, member] : fields) {
+      const auto it = msg.find(key);
+      if (it == msg.end()) continue;
+      if (!it->is_number() || !std::isfinite(it->get<double>()) || it->get<double>() <= 0) {
+        err = fmt::format("{} must be a finite positive number", key);
+        return false;
+      }
+      ps.*member = it->get<double>();
+    }
+
+    // select() 按顺序取第一个 |w| < threshold 的参数集，阈值不递增会让后面的参数集永远选不到
+    const auto i = static_cast<size_t>(index);
+    const double t = ps.angular_velocity_threshold;
+    if (
+      (i > 0 && t <= param_sets_[i - 1].angular_velocity_threshold) ||
+      (i + 1 < param_sets_.size() && t >= param_sets_[i + 1].angular_velocity_threshold)) {
+      err = "angular_velocity_threshold must stay strictly increasing across param sets";
+      return false;
+    }
+
+    param_sets_[i] = ps;
   }
 
-  auto v1_str = find_val("v1");
-  auto v2_str = find_val("v2");
-  auto R_yaw_str = find_val("R_yaw");
-  auto R_pitch_str = find_val("R_pitch");
-  auto R_distance_str = find_val("R_distance");
-  auto thresh_str = find_val("angular_velocity_threshold");
+  tools::logger()->info(
+    "[ParamTuner] Updated param set [{}] {}: v1={:.1f} v2={:.1f} R_yaw={:.1e} R_pitch={:.1e} "
+    "R_dist={:.1e} thresh={:.1f}",
+    index, ps.name, ps.v1, ps.v2, ps.R_yaw, ps.R_pitch, ps.R_distance,
+    ps.angular_velocity_threshold);
 
-  if (!v1_str.empty()) ps.v1 = std::stod(v1_str);
-  if (!v2_str.empty()) ps.v2 = std::stod(v2_str);
-  if (!R_yaw_str.empty()) ps.R_yaw = std::stod(R_yaw_str);
-  if (!R_pitch_str.empty()) ps.R_pitch = std::stod(R_pitch_str);
-  if (!R_distance_str.empty()) ps.R_distance = std::stod(R_distance_str);
-  if (!thresh_str.empty()) ps.angular_velocity_threshold = std::stod(thresh_str);
-
-  update_param_set(index, ps);
+  if (update_callback_) update_callback_(ps);
+  return true;
 }
 
 }  // namespace debug

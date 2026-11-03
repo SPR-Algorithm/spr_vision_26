@@ -33,6 +33,9 @@ debug_bus:
       enabled: true
       port: 8080
       bind: "0.0.0.0"
+      max_fps: 30        # 推流帧率上限，网页上可临时修改
+      jpeg_quality: 60   # 10 ~ 95
+      max_width: 640     # 图像宽度超过时等比缩小后再编码
 
 #####-----USB相机参数-----#####
 image_width: 1280
@@ -84,6 +87,15 @@ right_yaw_offset: -0.6
 decision_speed: 10 # rad/s
 high_speed_delay_time: 0.026 # s
 low_speed_delay_time: 0.010 # s
+
+#####-----planner-----#####
+fire_thresh: 0.003
+max_yaw_acc: 50
+Q_yaw: [9e6, 0]
+R_yaw: [1]
+max_pitch_acc: 100
+Q_pitch: [9e6, 0]
+R_pitch: [1]
 
 #####-----shooter参数-----#####
 first_tolerance: 5 # 近距离射击容差，degree

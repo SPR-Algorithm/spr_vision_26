@@ -1,0 +1,4449 @@
+{
+  "environment": {
+    "system": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "head": "4adb85ba2cd6d3f2399a20600031f58ba6eb3c3c",
+    "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "camera": "HikRobot MV-CS016-10UC (USB 2bdf:0001)",
+    "serial": "/dev/ttyUSB0 @ 115200",
+    "config": "configs/sentry.yaml",
+    "warmup_seconds": 5,
+    "measurement_seconds": 30,
+    "repeats": 2,
+    "video": {
+      "max_fps": 30,
+      "max_width": 640,
+      "jpeg_quality": 60
+    },
+    "headless": true,
+    "transport": "loopback passive viewers",
+    "control": "normal closed loop incl existing fire behavior",
+    "plotter": "original configuration unchanged"
+  },
+  "runs": {
+    "baseline_no_client_1": {
+      "algorithm_ms": {
+        "count": 1811,
+        "max": 44.714713,
+        "mean": 16.561817775262273,
+        "overflow": 0,
+        "p50": 17.169489,
+        "p95": 27.980093,
+        "p99": 31.735656,
+        "retained": 1811
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1811,
+        "max": 0.120094,
+        "mean": 0.002218998895637768,
+        "overflow": 0,
+        "p50": 0.002034,
+        "p95": 0.002872,
+        "p99": 0.004079,
+        "retained": 1811
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1811,
+        "max": 73.675528,
+        "mean": 30.09232767586971,
+        "overflow": 0,
+        "p50": 27.003587,
+        "p95": 52.092824,
+        "p99": 59.293944,
+        "retained": 1811
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1811,
+        "max": 44.721292,
+        "mean": 16.565613377691882,
+        "overflow": 0,
+        "p50": 17.173463,
+        "p95": 27.984983,
+        "p99": 31.740032,
+        "retained": 1811
+      },
+      "frame_period_ms": {
+        "count": 1811,
+        "max": 44.722135,
+        "mean": 16.566255302595252,
+        "overflow": 0,
+        "p50": 17.174296,
+        "p95": 27.986031,
+        "p99": 31.741082,
+        "retained": 1811
+      },
+      "frame_submit_ms": {
+        "count": 1811,
+        "max": 0.119503,
+        "mean": 0.0017223600220872448,
+        "overflow": 0,
+        "p50": 0.001549,
+        "p95": 0.002228,
+        "p99": 0.002905,
+        "retained": 1811
+      },
+      "measured_frames": 1811,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6336.089398289,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6306.089398289,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.585795,
+        "mean": 10.148494592354542,
+        "overflow": 0,
+        "p50": 10.13701,
+        "p95": 10.242242,
+        "p99": 10.308844,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.320117,
+        "mean": 0.06592552435723947,
+        "overflow": 0,
+        "p50": 0.062588,
+        "p95": 0.106598,
+        "p99": 0.143452,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "vision_fps": 60.36666666666667,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "baseline",
+      "mode": "no_client",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 163.31157867524163,
+        "rss_peak_mib": 819.75,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "baseline_no_client_2": {
+      "algorithm_ms": {
+        "count": 1701,
+        "max": 40.175924,
+        "mean": 17.631850073486188,
+        "overflow": 0,
+        "p50": 17.908877,
+        "p95": 30.345714,
+        "p99": 34.467717,
+        "retained": 1701
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1701,
+        "max": 0.014946,
+        "mean": 0.0020051593180482074,
+        "overflow": 0,
+        "p50": 0.001923,
+        "p95": 0.002594,
+        "p99": 0.003323,
+        "retained": 1701
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1701,
+        "max": 73.918914,
+        "mean": 32.26720793474428,
+        "overflow": 0,
+        "p50": 28.306112,
+        "p95": 56.53165,
+        "p99": 62.296777,
+        "retained": 1701
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1701,
+        "max": 40.179311,
+        "mean": 17.635433813051154,
+        "overflow": 0,
+        "p50": 17.912801,
+        "p95": 30.35063,
+        "p99": 34.471816,
+        "retained": 1701
+      },
+      "frame_period_ms": {
+        "count": 1701,
+        "max": 40.179908,
+        "mean": 17.636067313932983,
+        "overflow": 0,
+        "p50": 17.913412,
+        "p95": 30.351283,
+        "p99": 34.472326,
+        "retained": 1701
+      },
+      "frame_submit_ms": {
+        "count": 1701,
+        "max": 0.007259,
+        "mean": 0.0015973145208700772,
+        "overflow": 0,
+        "p50": 0.001537,
+        "p95": 0.002112,
+        "p99": 0.002689,
+        "retained": 1701
+      },
+      "measured_frames": 1701,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6449.733298346,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6419.733298346,
+      "plan_period_ms": {
+        "count": 2959,
+        "max": 10.438675,
+        "mean": 10.141013516052734,
+        "overflow": 0,
+        "p50": 10.131746,
+        "p95": 10.228608,
+        "p99": 10.289469,
+        "retained": 2959
+      },
+      "plan_work_ms": {
+        "count": 2959,
+        "max": 0.314582,
+        "mean": 0.06266441906049337,
+        "overflow": 0,
+        "p50": 0.060994,
+        "p95": 0.100661,
+        "p99": 0.141306,
+        "retained": 2959
+      },
+      "telemetry_submit_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "vision_fps": 56.7,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "baseline",
+      "mode": "no_client",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 163.04703194702788,
+        "rss_peak_mib": 803.16015625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "baseline_off_1": {
+      "algorithm_ms": {
+        "count": 1680,
+        "max": 40.696987,
+        "mean": 17.863637600595258,
+        "overflow": 0,
+        "p50": 17.915457,
+        "p95": 29.832878,
+        "p99": 34.062921,
+        "retained": 1680
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1680,
+        "max": 0.013845,
+        "mean": 0.0011360648809523807,
+        "overflow": 0,
+        "p50": 0.001062,
+        "p95": 0.001585,
+        "p99": 0.002102,
+        "retained": 1680
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1680,
+        "max": 74.140214,
+        "mean": 32.73395898273803,
+        "overflow": 0,
+        "p50": 28.523181,
+        "p95": 55.575853,
+        "p99": 61.840222,
+        "retained": 1680
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1680,
+        "max": 40.704366,
+        "mean": 17.86645136726191,
+        "overflow": 0,
+        "p50": 17.918977,
+        "p95": 29.83574,
+        "p99": 34.06632,
+        "retained": 1680
+      },
+      "frame_period_ms": {
+        "count": 1680,
+        "max": 40.705191,
+        "mean": 17.86705214999999,
+        "overflow": 0,
+        "p50": 17.919729,
+        "p95": 29.836196,
+        "p99": 34.066908,
+        "retained": 1680
+      },
+      "frame_submit_ms": {
+        "count": 1680,
+        "max": 0.013392,
+        "mean": 0.0006892416666666678,
+        "overflow": 0,
+        "p50": 0.000633,
+        "p95": 0.001039,
+        "p99": 0.001391,
+        "retained": 1680
+      },
+      "measured_frames": 1680,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6298.249537979,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6268.249537979,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.768802,
+        "mean": 10.147364146481705,
+        "overflow": 0,
+        "p50": 10.136389,
+        "p95": 10.239564,
+        "p99": 10.317264,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.500762,
+        "mean": 0.06587134742895807,
+        "overflow": 0,
+        "p50": 0.062306,
+        "p95": 0.10724,
+        "p99": 0.151503,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "vision_fps": 56.0,
+      "warmup_seconds": 5.0,
+      "web_override": "off",
+      "label": "baseline",
+      "mode": "off",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 164.40173124248952,
+        "rss_peak_mib": 856.88671875,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "baseline_off_2": {
+      "algorithm_ms": {
+        "count": 1848,
+        "max": 35.254001,
+        "mean": 16.230383097402605,
+        "overflow": 0,
+        "p50": 16.570491,
+        "p95": 28.12421,
+        "p99": 32.511962,
+        "retained": 1848
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1848,
+        "max": 0.013892,
+        "mean": 0.001093141774891774,
+        "overflow": 0,
+        "p50": 0.001029,
+        "p95": 0.00142,
+        "p99": 0.001767,
+        "retained": 1848
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1848,
+        "max": 67.58812,
+        "mean": 29.335004205086545,
+        "overflow": 0,
+        "p50": 26.784319,
+        "p95": 52.562346,
+        "p99": 59.385942,
+        "retained": 1848
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1848,
+        "max": 35.256904,
+        "mean": 16.23315146103896,
+        "overflow": 0,
+        "p50": 16.57368,
+        "p95": 28.126975,
+        "p99": 32.51492,
+        "retained": 1848
+      },
+      "frame_period_ms": {
+        "count": 1848,
+        "max": 35.257422,
+        "mean": 16.23379068506492,
+        "overflow": 0,
+        "p50": 16.574469,
+        "p95": 28.127415,
+        "p99": 32.515895,
+        "retained": 1848
+      },
+      "frame_submit_ms": {
+        "count": 1848,
+        "max": 0.013346,
+        "mean": 0.0006861433982683991,
+        "overflow": 0,
+        "p50": 0.00065,
+        "p95": 0.000924,
+        "p99": 0.00107,
+        "retained": 1848
+      },
+      "measured_frames": 1848,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6411.824190641,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6381.824190641,
+      "plan_period_ms": {
+        "count": 2959,
+        "max": 10.450547,
+        "mean": 10.137236095302455,
+        "overflow": 0,
+        "p50": 10.128089,
+        "p95": 10.219129,
+        "p99": 10.287748,
+        "retained": 2959
+      },
+      "plan_work_ms": {
+        "count": 2960,
+        "max": 0.307152,
+        "mean": 0.0612428908783783,
+        "overflow": 0,
+        "p50": 0.059818,
+        "p95": 0.097109,
+        "p99": 0.12543,
+        "retained": 2960
+      },
+      "telemetry_submit_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "vision_fps": 61.6,
+      "warmup_seconds": 5.0,
+      "web_override": "off",
+      "label": "baseline",
+      "mode": "off",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 161.42432947523966,
+        "rss_peak_mib": 866.19140625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "baseline_video_1": {
+      "algorithm_ms": {
+        "count": 1452,
+        "max": 46.084588,
+        "mean": 20.388610263774083,
+        "overflow": 0,
+        "p50": 20.295218,
+        "p95": 33.70821,
+        "p99": 39.677425,
+        "retained": 1452
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1452,
+        "max": 0.875986,
+        "mean": 0.27430926997245203,
+        "overflow": 0,
+        "p50": 0.371536,
+        "p95": 0.586127,
+        "p99": 0.712661,
+        "retained": 1452
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 888,
+        "max": 1.411771,
+        "mean": 0.7340273333333348,
+        "overflow": 0,
+        "p50": 0.634053,
+        "p95": 1.181453,
+        "p99": 1.270812,
+        "retained": 888
+      },
+      "frame_age_ms": {
+        "count": 1452,
+        "max": 85.724071,
+        "mean": 38.40873368732778,
+        "overflow": 0,
+        "p50": 33.85727,
+        "p95": 64.886247,
+        "p99": 73.059055,
+        "retained": 1452
+      },
+      "frame_copy_ms": {
+        "count": 888,
+        "max": 0.869686,
+        "mean": 0.4411035360360367,
+        "overflow": 0,
+        "p50": 0.423465,
+        "p95": 0.625764,
+        "p99": 0.721393,
+        "retained": 888
+      },
+      "frame_loop_ms": {
+        "count": 1452,
+        "max": 46.629132,
+        "mean": 20.664767546143228,
+        "overflow": 0,
+        "p50": 20.547118,
+        "p95": 34.165554,
+        "p99": 40.145992,
+        "retained": 1452
+      },
+      "frame_period_ms": {
+        "count": 1452,
+        "max": 46.629953,
+        "mean": 20.665523783746544,
+        "overflow": 0,
+        "p50": 20.547811,
+        "p95": 34.167137,
+        "p99": 40.146641,
+        "retained": 1452
+      },
+      "frame_submit_ms": {
+        "count": 1452,
+        "max": 0.875361,
+        "mean": 0.273914796831956,
+        "overflow": 0,
+        "p50": 0.371201,
+        "p95": 0.585771,
+        "p99": 0.711622,
+        "retained": 1452
+      },
+      "measured_frames": 1452,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6373.856304367,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6343.856304367,
+      "plan_period_ms": {
+        "count": 2955,
+        "max": 10.781793,
+        "mean": 10.15178854822335,
+        "overflow": 0,
+        "p50": 10.140939,
+        "p95": 10.24378,
+        "p99": 10.324407,
+        "retained": 2955
+      },
+      "plan_work_ms": {
+        "count": 2955,
+        "max": 0.29354,
+        "mean": 0.06824877901861232,
+        "overflow": 0,
+        "p50": 0.065471,
+        "p95": 0.108774,
+        "p99": 0.139717,
+        "retained": 2955
+      },
+      "telemetry_submit_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "vision_fps": 48.4,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "baseline",
+      "mode": "video",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 175.35014628932112,
+        "rss_peak_mib": 875.640625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6303661,
+          "video_frames": 1038,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "baseline_video_2": {
+      "algorithm_ms": {
+        "count": 1765,
+        "max": 36.526947,
+        "mean": 16.784796538243633,
+        "overflow": 0,
+        "p50": 17.405257,
+        "p95": 28.279437,
+        "p99": 32.484657,
+        "retained": 1765
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1765,
+        "max": 0.847358,
+        "mean": 0.21856972747875333,
+        "overflow": 0,
+        "p50": 0.294297,
+        "p95": 0.540412,
+        "p99": 0.651155,
+        "retained": 1765
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 900,
+        "max": 1.344196,
+        "mean": 0.7241299366666668,
+        "overflow": 0,
+        "p50": 0.621352,
+        "p95": 1.172274,
+        "p99": 1.282164,
+        "retained": 900
+      },
+      "frame_age_ms": {
+        "count": 1765,
+        "max": 65.27991,
+        "mean": 30.958258084419327,
+        "overflow": 0,
+        "p50": 27.759049,
+        "p95": 54.130086,
+        "p99": 60.042497,
+        "retained": 1765
+      },
+      "frame_copy_ms": {
+        "count": 900,
+        "max": 0.839663,
+        "mean": 0.421468724444445,
+        "overflow": 0,
+        "p50": 0.40868,
+        "p95": 0.597964,
+        "p99": 0.661434,
+        "retained": 900
+      },
+      "frame_loop_ms": {
+        "count": 1765,
+        "max": 37.053838,
+        "mean": 17.00498683739376,
+        "overflow": 0,
+        "p50": 17.711725,
+        "p95": 28.674959,
+        "p99": 32.96314,
+        "retained": 1765
+      },
+      "frame_period_ms": {
+        "count": 1765,
+        "max": 37.054446,
+        "mean": 17.00566154334278,
+        "overflow": 0,
+        "p50": 17.712312,
+        "p95": 28.675698,
+        "p99": 32.963964,
+        "retained": 1765
+      },
+      "frame_submit_ms": {
+        "count": 1765,
+        "max": 0.846665,
+        "mean": 0.21816679773371112,
+        "overflow": 0,
+        "p50": 0.293964,
+        "p95": 0.539807,
+        "p99": 0.65082,
+        "retained": 1765
+      },
+      "measured_frames": 1765,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6487.525618714,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6457.525618714,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.401256,
+        "mean": 10.147532457713151,
+        "overflow": 0,
+        "p50": 10.136852,
+        "p95": 10.238783,
+        "p99": 10.296281,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.238231,
+        "mean": 0.06424573410013534,
+        "overflow": 0,
+        "p50": 0.061969,
+        "p95": 0.101213,
+        "p99": 0.132025,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "vision_fps": 58.833333333333336,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "baseline",
+      "mode": "video",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 171.08777774716498,
+        "rss_peak_mib": 876.1328125,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6370958,
+          "video_frames": 1050,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "current_both_1": {
+      "algorithm_ms": {
+        "count": 1888,
+        "max": 34.027199,
+        "mean": 15.658579648834747,
+        "overflow": 0,
+        "p50": 15.356488,
+        "p95": 25.937416,
+        "p99": 30.598813,
+        "retained": 1888
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1888,
+        "max": 0.981395,
+        "mean": 0.22963553760593233,
+        "overflow": 0,
+        "p50": 0.001594,
+        "p95": 0.591262,
+        "p99": 0.717066,
+        "retained": 1888
+      },
+      "debug_run_counters": {
+        "encode_count": 1050,
+        "encode_max_ns": 1785145,
+        "encode_total_ns": 584280680,
+        "frame_copy_count": 1050,
+        "frame_copy_max_ns": 1547716,
+        "frame_copy_total_ns": 503306797,
+        "frames_accepted": 1050,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1050,
+        "telemetry_accepted": 3452,
+        "telemetry_batches": 693,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 901,
+        "max": 1.1419,
+        "mean": 0.5549731831298557,
+        "overflow": 0,
+        "p50": 0.524675,
+        "p95": 0.801716,
+        "p99": 1.087615,
+        "retained": 901
+      },
+      "frame_age_ms": {
+        "count": 1888,
+        "max": 63.933714,
+        "mean": 28.771399168961842,
+        "overflow": 0,
+        "p50": 26.207754,
+        "p95": 49.112176,
+        "p99": 55.883876,
+        "retained": 1888
+      },
+      "frame_copy_ms": {
+        "count": 901,
+        "max": 0.974196,
+        "mean": 0.4745008324084352,
+        "overflow": 0,
+        "p50": 0.449784,
+        "p95": 0.6203,
+        "p99": 0.786489,
+        "retained": 901
+      },
+      "frame_loop_ms": {
+        "count": 1888,
+        "max": 34.426726,
+        "mean": 15.889905610169464,
+        "overflow": 0,
+        "p50": 15.45705,
+        "p95": 26.426697,
+        "p99": 31.061391,
+        "retained": 1888
+      },
+      "frame_period_ms": {
+        "count": 1888,
+        "max": 34.427377,
+        "mean": 15.890493986758475,
+        "overflow": 0,
+        "p50": 15.457809,
+        "p95": 26.427365,
+        "p99": 31.062083,
+        "retained": 1888
+      },
+      "frame_submit_ms": {
+        "count": 1888,
+        "max": 0.979672,
+        "mean": 0.2286344247881354,
+        "overflow": 0,
+        "p50": 0.000112,
+        "p95": 0.590027,
+        "p99": 0.71598,
+        "retained": 1888
+      },
+      "measured_frames": 1888,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6664.418125674,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6634.418125674,
+      "plan_period_ms": {
+        "count": 2958,
+        "max": 10.438085,
+        "mean": 10.144354625084503,
+        "overflow": 0,
+        "p50": 10.135029,
+        "p95": 10.232217,
+        "p99": 10.295781,
+        "retained": 2958
+      },
+      "plan_work_ms": {
+        "count": 2958,
+        "max": 0.249278,
+        "mean": 0.06427409567275187,
+        "overflow": 0,
+        "p50": 0.061813,
+        "p95": 0.103103,
+        "p99": 0.135309,
+        "retained": 2958
+      },
+      "telemetry_submit_ms": {
+        "count": 2958,
+        "max": 0.015472,
+        "mean": 0.0010229259634888437,
+        "overflow": 0,
+        "p50": 0.000941,
+        "p95": 0.001846,
+        "p99": 0.00253,
+        "retained": 2958
+      },
+      "vision_fps": 62.93333333333333,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "both",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 165.73678891876065,
+        "rss_peak_mib": 853.859375,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6357470,
+          "video_frames": 1050,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2456896,
+          "video_frames": 0,
+          "telemetry_samples": 3452,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "current_both_2": {
+      "algorithm_ms": {
+        "count": 1826,
+        "max": 33.023491,
+        "mean": 16.183330453450143,
+        "overflow": 0,
+        "p50": 16.775175,
+        "p95": 26.592151,
+        "p99": 29.92361,
+        "retained": 1826
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1826,
+        "max": 1.102908,
+        "mean": 0.2379343871851039,
+        "overflow": 0,
+        "p50": 0.001941,
+        "p95": 0.580514,
+        "p99": 0.674953,
+        "retained": 1826
+      },
+      "debug_run_counters": {
+        "encode_count": 1050,
+        "encode_max_ns": 3095868,
+        "encode_total_ns": 604819936,
+        "frame_copy_count": 1050,
+        "frame_copy_max_ns": 1576181,
+        "frame_copy_total_ns": 499047133,
+        "frames_accepted": 1050,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1050,
+        "telemetry_accepted": 3451,
+        "telemetry_batches": 692,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 900,
+        "max": 1.180881,
+        "mean": 0.55715458,
+        "overflow": 0,
+        "p50": 0.527236,
+        "p95": 0.771749,
+        "p99": 1.076545,
+        "retained": 900
+      },
+      "frame_age_ms": {
+        "count": 1826,
+        "max": 65.382267,
+        "mean": 29.784348128148928,
+        "overflow": 0,
+        "p50": 27.465652,
+        "p95": 49.437394,
+        "p99": 56.61294,
+        "retained": 1826
+      },
+      "frame_copy_ms": {
+        "count": 900,
+        "max": 1.096558,
+        "mean": 0.475629211111111,
+        "overflow": 0,
+        "p50": 0.457427,
+        "p95": 0.613388,
+        "p99": 0.703631,
+        "retained": 900
+      },
+      "frame_loop_ms": {
+        "count": 1826,
+        "max": 33.624163,
+        "mean": 16.422965030120462,
+        "overflow": 0,
+        "p50": 16.869146,
+        "p95": 27.079448,
+        "p99": 30.351368,
+        "retained": 1826
+      },
+      "frame_period_ms": {
+        "count": 1826,
+        "max": 33.624747,
+        "mean": 16.423553987951806,
+        "overflow": 0,
+        "p50": 16.869655,
+        "p95": 27.080035,
+        "p99": 30.351864,
+        "retained": 1826
+      },
+      "frame_submit_ms": {
+        "count": 1826,
+        "max": 1.101376,
+        "mean": 0.23675934884994523,
+        "overflow": 0,
+        "p50": 0.000146,
+        "p95": 0.579495,
+        "p99": 0.673468,
+        "retained": 1826
+      },
+      "measured_frames": 1826,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6853.090161876,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6823.090161876,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 10.458887,
+        "mean": 10.14817137504227,
+        "overflow": 0,
+        "p50": 10.136919,
+        "p95": 10.245125,
+        "p99": 10.317498,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.345354,
+        "mean": 0.06601945992560024,
+        "overflow": 0,
+        "p50": 0.063048,
+        "p95": 0.105712,
+        "p99": 0.138722,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.204739,
+        "mean": 0.0010828562732499165,
+        "overflow": 0,
+        "p50": 0.000956,
+        "p95": 0.001835,
+        "p99": 0.002464,
+        "retained": 2957
+      },
+      "vision_fps": 60.86666666666667,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "both",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 167.74924163623947,
+        "rss_peak_mib": 832.92578125,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6383818,
+          "video_frames": 1050,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2454688,
+          "video_frames": 0,
+          "telemetry_samples": 3447,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "current_no_client_1": {
+      "algorithm_ms": {
+        "count": 1675,
+        "max": 39.028819,
+        "mean": 17.90690780895526,
+        "overflow": 0,
+        "p50": 18.342777,
+        "p95": 28.460706,
+        "p99": 32.008524,
+        "retained": 1675
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1675,
+        "max": 0.014892,
+        "mean": 0.001227389253731345,
+        "overflow": 0,
+        "p50": 0.001176,
+        "p95": 0.001768,
+        "p99": 0.002303,
+        "retained": 1675
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1675,
+        "max": 77.025271,
+        "mean": 32.77853824179109,
+        "overflow": 0,
+        "p50": 30.297674,
+        "p95": 51.96048,
+        "p99": 57.601613,
+        "retained": 1675
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1675,
+        "max": 39.033012,
+        "mean": 17.909810001791065,
+        "overflow": 0,
+        "p50": 18.345927,
+        "p95": 28.462973,
+        "p99": 32.011691,
+        "retained": 1675
+      },
+      "frame_period_ms": {
+        "count": 1675,
+        "max": 39.034073,
+        "mean": 17.91038372417909,
+        "overflow": 0,
+        "p50": 18.346444,
+        "p95": 28.463785,
+        "p99": 32.012167,
+        "retained": 1675
+      },
+      "frame_submit_ms": {
+        "count": 1675,
+        "max": 0.00028,
+        "mean": 2.5125373134328822e-05,
+        "overflow": 0,
+        "p50": 2.5e-05,
+        "p95": 3.1e-05,
+        "p99": 3.5e-05,
+        "retained": 1675
+      },
+      "measured_frames": 1675,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6589.227713838,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6559.227713838,
+      "plan_period_ms": {
+        "count": 2955,
+        "max": 10.502425,
+        "mean": 10.149366029103215,
+        "overflow": 0,
+        "p50": 10.140094,
+        "p95": 10.234021,
+        "p99": 10.310629,
+        "retained": 2955
+      },
+      "plan_work_ms": {
+        "count": 2955,
+        "max": 0.344487,
+        "mean": 0.0683697072758037,
+        "overflow": 0,
+        "p50": 0.065078,
+        "p95": 0.105843,
+        "p99": 0.154219,
+        "retained": 2955
+      },
+      "telemetry_submit_ms": {
+        "count": 2955,
+        "max": 0.019072,
+        "mean": 0.0009589722504230122,
+        "overflow": 0,
+        "p50": 0.000905,
+        "p95": 0.001662,
+        "p99": 0.002152,
+        "retained": 2955
+      },
+      "vision_fps": 55.833333333333336,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "no_client",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 168.13943514641204,
+        "rss_peak_mib": 850.62890625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "current_no_client_2": {
+      "algorithm_ms": {
+        "count": 1815,
+        "max": 34.104442,
+        "mean": 16.523323488705223,
+        "overflow": 0,
+        "p50": 16.802889,
+        "p95": 27.899702,
+        "p99": 31.292395,
+        "retained": 1815
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1815,
+        "max": 0.018845,
+        "mean": 0.0011236539944903575,
+        "overflow": 0,
+        "p50": 0.001071,
+        "p95": 0.0016,
+        "p99": 0.001996,
+        "retained": 1815
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1815,
+        "max": 65.076938,
+        "mean": 30.034304419834697,
+        "overflow": 0,
+        "p50": 26.761734,
+        "p95": 52.212432,
+        "p99": 58.247103,
+        "retained": 1815
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1815,
+        "max": 34.106896,
+        "mean": 16.526025214876032,
+        "overflow": 0,
+        "p50": 16.80514,
+        "p95": 27.902126,
+        "p99": 31.2956,
+        "retained": 1815
+      },
+      "frame_period_ms": {
+        "count": 1815,
+        "max": 34.107549,
+        "mean": 16.526631839669452,
+        "overflow": 0,
+        "p50": 16.805585,
+        "p95": 27.902857,
+        "p99": 31.296347,
+        "retained": 1815
+      },
+      "frame_submit_ms": {
+        "count": 1815,
+        "max": 0.000301,
+        "mean": 4.225123966942182e-05,
+        "overflow": 0,
+        "p50": 2.6e-05,
+        "p95": 0.000122,
+        "p99": 0.000186,
+        "retained": 1815
+      },
+      "measured_frames": 1815,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6777.118987588,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6747.118987588,
+      "plan_period_ms": {
+        "count": 2958,
+        "max": 10.525184,
+        "mean": 10.142698527383358,
+        "overflow": 0,
+        "p50": 10.132934,
+        "p95": 10.236478,
+        "p99": 10.320543,
+        "retained": 2958
+      },
+      "plan_work_ms": {
+        "count": 2958,
+        "max": 0.331003,
+        "mean": 0.06241802129817436,
+        "overflow": 0,
+        "p50": 0.06081,
+        "p95": 0.101412,
+        "p99": 0.135983,
+        "retained": 2958
+      },
+      "telemetry_submit_ms": {
+        "count": 2958,
+        "max": 0.013943,
+        "mean": 0.000839361392832993,
+        "overflow": 0,
+        "p50": 0.000789,
+        "p95": 0.001553,
+        "p99": 0.002087,
+        "retained": 2958
+      },
+      "vision_fps": 60.5,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "no_client",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 165.83438651494,
+        "rss_peak_mib": 889.0859375,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "current_off_1": {
+      "algorithm_ms": {
+        "count": 1311,
+        "max": 45.560045,
+        "mean": 22.869004281464548,
+        "overflow": 0,
+        "p50": 24.234907,
+        "p95": 35.106348,
+        "p99": 39.261942,
+        "retained": 1311
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1311,
+        "max": 0.005497,
+        "mean": 0.0005842807017543863,
+        "overflow": 0,
+        "p50": 0.000547,
+        "p95": 0.000895,
+        "p99": 0.001155,
+        "retained": 1311
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1311,
+        "max": 76.68435,
+        "mean": 42.72195499847445,
+        "overflow": 0,
+        "p50": 46.552991,
+        "p95": 65.60547,
+        "p99": 70.097126,
+        "retained": 1311
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1311,
+        "max": 45.562963,
+        "mean": 22.871274885583546,
+        "overflow": 0,
+        "p50": 24.236928,
+        "p95": 35.109475,
+        "p99": 39.264398,
+        "retained": 1311
+      },
+      "frame_period_ms": {
+        "count": 1311,
+        "max": 45.563685,
+        "mean": 22.87190844241038,
+        "overflow": 0,
+        "p50": 24.237707,
+        "p95": 35.110031,
+        "p99": 39.265144,
+        "retained": 1311
+      },
+      "frame_submit_ms": {
+        "count": 1311,
+        "max": 0.000303,
+        "mean": 2.915865751334877e-05,
+        "overflow": 0,
+        "p50": 2.5e-05,
+        "p95": 9.3e-05,
+        "p99": 0.000162,
+        "retained": 1311
+      },
+      "measured_frames": 1311,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6551.422441769,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6521.422441769,
+      "plan_period_ms": {
+        "count": 2955,
+        "max": 10.46481,
+        "mean": 10.154202047038947,
+        "overflow": 0,
+        "p50": 10.141843,
+        "p95": 10.255178,
+        "p99": 10.333424,
+        "retained": 2955
+      },
+      "plan_work_ms": {
+        "count": 2955,
+        "max": 0.296743,
+        "mean": 0.0698579536379019,
+        "overflow": 0,
+        "p50": 0.067088,
+        "p95": 0.113067,
+        "p99": 0.137307,
+        "retained": 2955
+      },
+      "telemetry_submit_ms": {
+        "count": 2955,
+        "max": 0.012895,
+        "mean": 0.00031574517766497467,
+        "overflow": 0,
+        "p50": 0.000279,
+        "p95": 0.000603,
+        "p99": 0.000811,
+        "retained": 2955
+      },
+      "vision_fps": 43.7,
+      "warmup_seconds": 5.0,
+      "web_override": "off",
+      "label": "current",
+      "mode": "off",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 167.8694453228603,
+        "rss_peak_mib": 850.796875,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "current_off_2": {
+      "algorithm_ms": {
+        "count": 1846,
+        "max": 36.694186,
+        "mean": 16.24959319176598,
+        "overflow": 0,
+        "p50": 16.675988,
+        "p95": 27.311155,
+        "p99": 30.693922,
+        "retained": 1846
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1846,
+        "max": 0.020783,
+        "mean": 0.0005512583965330445,
+        "overflow": 0,
+        "p50": 0.000513,
+        "p95": 0.000812,
+        "p99": 0.001026,
+        "retained": 1846
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1846,
+        "max": 62.623497,
+        "mean": 29.41475651083426,
+        "overflow": 0,
+        "p50": 27.022679,
+        "p95": 50.302159,
+        "p99": 55.971329,
+        "retained": 1846
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1846,
+        "max": 36.696106,
+        "mean": 16.251821829902482,
+        "overflow": 0,
+        "p50": 16.678301,
+        "p95": 27.313122,
+        "p99": 30.696138,
+        "retained": 1846
+      },
+      "frame_period_ms": {
+        "count": 1846,
+        "max": 36.696619,
+        "mean": 16.252416468580698,
+        "overflow": 0,
+        "p50": 16.678802,
+        "p95": 27.3139,
+        "p99": 30.696784,
+        "retained": 1846
+      },
+      "frame_submit_ms": {
+        "count": 1846,
+        "max": 0.000313,
+        "mean": 3.85162513542799e-05,
+        "overflow": 0,
+        "p50": 2.6e-05,
+        "p95": 0.000117,
+        "p99": 0.000187,
+        "retained": 1846
+      },
+      "measured_frames": 1846,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6739.557484677,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6709.557484677,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 10.438588,
+        "mean": 10.145068718295555,
+        "overflow": 0,
+        "p50": 10.135507,
+        "p95": 10.237477,
+        "p99": 10.294739,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.334924,
+        "mean": 0.06393843760568149,
+        "overflow": 0,
+        "p50": 0.061912,
+        "p95": 0.099446,
+        "p99": 0.14079,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.029217,
+        "mean": 0.000267238417314846,
+        "overflow": 0,
+        "p50": 0.000238,
+        "p95": 0.000508,
+        "p99": 0.000707,
+        "retained": 2957
+      },
+      "vision_fps": 61.53333333333333,
+      "warmup_seconds": 5.0,
+      "web_override": "off",
+      "label": "current",
+      "mode": "off",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 164.52161668024848,
+        "rss_peak_mib": 869.8203125,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "current_slow_1": {
+      "algorithm_ms": {
+        "count": 1848,
+        "max": 34.514916,
+        "mean": 15.99263618235931,
+        "overflow": 0,
+        "p50": 16.318122,
+        "p95": 26.142771,
+        "p99": 29.524348,
+        "retained": 1848
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1848,
+        "max": 1.460975,
+        "mean": 0.2389719042207791,
+        "overflow": 0,
+        "p50": 0.001592,
+        "p95": 0.596257,
+        "p99": 0.78467,
+        "retained": 1848
+      },
+      "debug_run_counters": {
+        "encode_count": 1050,
+        "encode_max_ns": 1965471,
+        "encode_total_ns": 611101541,
+        "frame_copy_count": 1050,
+        "frame_copy_max_ns": 1452557,
+        "frame_copy_total_ns": 509810653,
+        "frames_accepted": 1050,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1074,
+        "telemetry_accepted": 3451,
+        "telemetry_batches": 692,
+        "telemetry_client_dropped": 3247,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 1026
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 900,
+        "max": 1.441676,
+        "mean": 0.5843677288888889,
+        "overflow": 0,
+        "p50": 0.537286,
+        "p95": 1.05015,
+        "p99": 1.164604,
+        "retained": 900
+      },
+      "frame_age_ms": {
+        "count": 1848,
+        "max": 62.458499,
+        "mean": 29.36635099945885,
+        "overflow": 0,
+        "p50": 27.162253,
+        "p95": 48.702548,
+        "p99": 56.085346,
+        "retained": 1848
+      },
+      "frame_copy_ms": {
+        "count": 900,
+        "max": 1.452557,
+        "mean": 0.48409831222222244,
+        "overflow": 0,
+        "p50": 0.464124,
+        "p95": 0.635846,
+        "p99": 0.946291,
+        "retained": 900
+      },
+      "frame_loop_ms": {
+        "count": 1848,
+        "max": 35.022919,
+        "mean": 16.233272630411268,
+        "overflow": 0,
+        "p50": 16.659178,
+        "p95": 26.701665,
+        "p99": 29.635811,
+        "retained": 1848
+      },
+      "frame_period_ms": {
+        "count": 1848,
+        "max": 35.023373,
+        "mean": 16.233866332792214,
+        "overflow": 0,
+        "p50": 16.65982,
+        "p95": 26.702207,
+        "p99": 29.636703,
+        "retained": 1848
+      },
+      "frame_submit_ms": {
+        "count": 1848,
+        "max": 1.459378,
+        "mean": 0.2380028782467534,
+        "overflow": 0,
+        "p50": 0.000217,
+        "p95": 0.595121,
+        "p99": 0.783309,
+        "retained": 1848
+      },
+      "measured_frames": 1848,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6702.055849447,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6672.055849447,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.477884,
+        "mean": 10.148069117726655,
+        "overflow": 0,
+        "p50": 10.137359,
+        "p95": 10.238627,
+        "p99": 10.313624,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.312039,
+        "mean": 0.06505779194857919,
+        "overflow": 0,
+        "p50": 0.06188,
+        "p95": 0.106746,
+        "p99": 0.13757,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 2956,
+        "max": 0.02501,
+        "mean": 0.0009082114343707718,
+        "overflow": 0,
+        "p50": 0.000827,
+        "p95": 0.001661,
+        "p99": 0.002401,
+        "retained": 2956
+      },
+      "vision_fps": 61.6,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "slow",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 168.71254078687238,
+        "rss_peak_mib": 865.1484375,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6359910,
+          "video_frames": 1050,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2455364,
+          "video_frames": 0,
+          "telemetry_samples": 3450,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ],
+      "backpressure_observed": {
+        "video": true,
+        "telemetry": true
+      }
+    },
+    "current_slow_2": {
+      "algorithm_ms": {
+        "count": 1683,
+        "max": 506.828891,
+        "mean": 17.54839484373144,
+        "overflow": 0,
+        "p50": 17.258905,
+        "p95": 28.741388,
+        "p99": 34.334185,
+        "retained": 1683
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1683,
+        "max": 1.3172,
+        "mean": 0.2733826767676766,
+        "overflow": 0,
+        "p50": 0.401471,
+        "p95": 0.615996,
+        "p99": 0.79698,
+        "retained": 1683
+      },
+      "debug_run_counters": {
+        "encode_count": 1034,
+        "encode_max_ns": 3460624,
+        "encode_total_ns": 605143544,
+        "frame_copy_count": 1034,
+        "frame_copy_max_ns": 1552372,
+        "frame_copy_total_ns": 527054419,
+        "frames_accepted": 1034,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1059,
+        "telemetry_accepted": 3451,
+        "telemetry_batches": 693,
+        "telemetry_client_dropped": 3245,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 1009
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 883,
+        "max": 3.460624,
+        "mean": 0.5816072536806344,
+        "overflow": 0,
+        "p50": 0.533735,
+        "p95": 0.846403,
+        "p99": 1.142784,
+        "retained": 883
+      },
+      "frame_age_ms": {
+        "count": 1683,
+        "max": 528.435324,
+        "mean": 32.660652759358285,
+        "overflow": 0,
+        "p50": 28.447465,
+        "p95": 54.623694,
+        "p99": 63.841462,
+        "retained": 1683
+      },
+      "frame_copy_ms": {
+        "count": 883,
+        "max": 1.309456,
+        "mean": 0.5134032774631939,
+        "overflow": 0,
+        "p50": 0.49205,
+        "p95": 0.662247,
+        "p99": 0.91847,
+        "retained": 883
+      },
+      "frame_loop_ms": {
+        "count": 1683,
+        "max": 507.261721,
+        "mean": 17.82352862804518,
+        "overflow": 0,
+        "p50": 17.655087,
+        "p95": 29.319851,
+        "p99": 34.919149,
+        "retained": 1683
+      },
+      "frame_period_ms": {
+        "count": 1683,
+        "max": 507.262208,
+        "mean": 17.82416538740345,
+        "overflow": 0,
+        "p50": 17.655796,
+        "p95": 29.320413,
+        "p99": 34.919697,
+        "retained": 1683
+      },
+      "frame_submit_ms": {
+        "count": 1683,
+        "max": 1.315778,
+        "mean": 0.2721193220439691,
+        "overflow": 0,
+        "p50": 0.399843,
+        "p95": 0.614882,
+        "p99": 0.795983,
+        "retained": 1683
+      },
+      "measured_frames": 1683,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6890.884699482,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6860.884699482,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.573958,
+        "mean": 10.150307298714473,
+        "overflow": 0,
+        "p50": 10.139683,
+        "p95": 10.243127,
+        "p99": 10.30624,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.29203,
+        "mean": 0.06653834336941833,
+        "overflow": 0,
+        "p50": 0.064283,
+        "p95": 0.104178,
+        "p99": 0.138145,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 2956,
+        "max": 0.028912,
+        "mean": 0.0010475585250338312,
+        "overflow": 0,
+        "p50": 0.00098,
+        "p95": 0.001836,
+        "p99": 0.002578,
+        "retained": 2956
+      },
+      "vision_fps": 56.1,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "slow",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 165.8872556174796,
+        "rss_peak_mib": 848.3984375,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6336744,
+          "video_frames": 1034,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2453195,
+          "video_frames": 0,
+          "telemetry_samples": 3451,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ],
+      "backpressure_observed": {
+        "video": true,
+        "telemetry": true
+      }
+    },
+    "current_telemetry_1": {
+      "algorithm_ms": {
+        "count": 1933,
+        "max": 34.118119,
+        "mean": 15.517883374547347,
+        "overflow": 0,
+        "p50": 15.315804,
+        "p95": 25.786471,
+        "p99": 29.668107,
+        "retained": 1933
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1933,
+        "max": 0.017211,
+        "mean": 0.0011316435592343506,
+        "overflow": 0,
+        "p50": 0.001085,
+        "p95": 0.001603,
+        "p99": 0.001922,
+        "retained": 1933
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "telemetry_accepted": 3450,
+        "telemetry_batches": 697,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1933,
+        "max": 62.6704,
+        "mean": 27.97074646094157,
+        "overflow": 0,
+        "p50": 25.832058,
+        "p95": 46.655752,
+        "p99": 55.055408,
+        "retained": 1933
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1933,
+        "max": 34.120477,
+        "mean": 15.520596660113808,
+        "overflow": 0,
+        "p50": 15.317874,
+        "p95": 25.789151,
+        "p99": 29.670531,
+        "retained": 1933
+      },
+      "frame_period_ms": {
+        "count": 1933,
+        "max": 34.120998,
+        "mean": 15.521200068804943,
+        "overflow": 0,
+        "p50": 15.318351,
+        "p95": 25.78963,
+        "p99": 29.671023,
+        "retained": 1933
+      },
+      "frame_submit_ms": {
+        "count": 1933,
+        "max": 0.000311,
+        "mean": 2.499379203310938e-05,
+        "overflow": 0,
+        "p50": 2e-05,
+        "p95": 3.1e-05,
+        "p99": 0.00013,
+        "retained": 1933
+      },
+      "measured_frames": 1933,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6626.657732263,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6596.657732263,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 10.471627,
+        "mean": 10.145150787622576,
+        "overflow": 0,
+        "p50": 10.134879,
+        "p95": 10.237045,
+        "p99": 10.305643,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.301996,
+        "mean": 0.06496737943862023,
+        "overflow": 0,
+        "p50": 0.063016,
+        "p95": 0.103695,
+        "p99": 0.135412,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.011184,
+        "mean": 0.0009800378762259046,
+        "overflow": 0,
+        "p50": 0.000916,
+        "p95": 0.001797,
+        "p99": 0.002414,
+        "retained": 2957
+      },
+      "vision_fps": 64.43333333333334,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "telemetry",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 166.13826980855245,
+        "rss_peak_mib": 801.953125,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2453026,
+          "video_frames": 0,
+          "telemetry_samples": 3446,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "current_telemetry_2": {
+      "algorithm_ms": {
+        "count": 1662,
+        "max": 36.964409,
+        "mean": 18.046166857400724,
+        "overflow": 0,
+        "p50": 18.777423,
+        "p95": 28.816409,
+        "p99": 32.147771,
+        "retained": 1662
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1662,
+        "max": 0.005908,
+        "mean": 0.0011073712394705187,
+        "overflow": 0,
+        "p50": 0.001066,
+        "p95": 0.001586,
+        "p99": 0.001949,
+        "retained": 1662
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "telemetry_accepted": 3451,
+        "telemetry_batches": 697,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1662,
+        "max": 64.360701,
+        "mean": 33.13013229542721,
+        "overflow": 0,
+        "p50": 30.11391,
+        "p95": 52.495161,
+        "p99": 59.431565,
+        "retained": 1662
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1662,
+        "max": 36.969325,
+        "mean": 18.048936589049347,
+        "overflow": 0,
+        "p50": 18.780062,
+        "p95": 28.818703,
+        "p99": 32.1507,
+        "retained": 1662
+      },
+      "frame_period_ms": {
+        "count": 1662,
+        "max": 36.970094,
+        "mean": 18.049542830926587,
+        "overflow": 0,
+        "p50": 18.780764,
+        "p95": 28.819373,
+        "p99": 32.151348,
+        "retained": 1662
+      },
+      "frame_submit_ms": {
+        "count": 1662,
+        "max": 0.000194,
+        "mean": 2.318411552346594e-05,
+        "overflow": 0,
+        "p50": 2.3e-05,
+        "p95": 2.9e-05,
+        "p99": 4.6e-05,
+        "retained": 1662
+      },
+      "measured_frames": 1662,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 6815.26490452,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 6785.26490452,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.45674,
+        "mean": 10.147121341339647,
+        "overflow": 0,
+        "p50": 10.137596,
+        "p95": 10.229952,
+        "p99": 10.299484,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.323753,
+        "mean": 0.06757992151556153,
+        "overflow": 0,
+        "p50": 0.065217,
+        "p95": 0.101666,
+        "p99": 0.14022,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 2956,
+        "max": 0.030183,
+        "mean": 0.0010999049391069017,
+        "overflow": 0,
+        "p50": 0.001013,
+        "p95": 0.001934,
+        "p99": 0.002614,
+        "retained": 2956
+      },
+      "vision_fps": 55.4,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "current",
+      "mode": "telemetry",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 166.68624539154433,
+        "rss_peak_mib": 853.9609375,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2452872,
+          "video_frames": 0,
+          "telemetry_samples": 3448,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "pooled_both_1": {
+      "algorithm_ms": {
+        "count": 1495,
+        "max": 61.923176,
+        "mean": 19.75229974983279,
+        "overflow": 0,
+        "p50": 20.342458,
+        "p95": 31.556388,
+        "p99": 36.449399,
+        "retained": 1495
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1495,
+        "max": 1.403503,
+        "mean": 0.30660188829431434,
+        "overflow": 0,
+        "p50": 0.430951,
+        "p95": 0.628096,
+        "p99": 0.911095,
+        "retained": 1495
+      },
+      "debug_run_counters": {
+        "encode_count": 1046,
+        "encode_max_ns": 2122780,
+        "encode_total_ns": 622856763,
+        "frame_copy_count": 1046,
+        "frame_copy_max_ns": 1506313,
+        "frame_copy_total_ns": 529211525,
+        "frames_accepted": 1046,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1046,
+        "raw_frame_allocations": 1,
+        "raw_frame_reuses": 1045,
+        "telemetry_accepted": 3451,
+        "telemetry_batches": 693,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 895,
+        "max": 1.297612,
+        "mean": 0.5899147351955306,
+        "overflow": 0,
+        "p50": 0.532019,
+        "p95": 1.066639,
+        "p99": 1.186193,
+        "retained": 895
+      },
+      "frame_age_ms": {
+        "count": 1495,
+        "max": 117.446936,
+        "mean": 37.11266441739126,
+        "overflow": 0,
+        "p50": 36.743245,
+        "p95": 58.916755,
+        "p99": 67.519297,
+        "retained": 1495
+      },
+      "frame_copy_ms": {
+        "count": 895,
+        "max": 1.394413,
+        "mean": 0.504785446927374,
+        "overflow": 0,
+        "p50": 0.480134,
+        "p95": 0.670651,
+        "p99": 1.034939,
+        "retained": 895
+      },
+      "frame_loop_ms": {
+        "count": 1495,
+        "max": 62.350236,
+        "mean": 20.06073365418059,
+        "overflow": 0,
+        "p50": 20.746765,
+        "p95": 32.082256,
+        "p99": 37.237578,
+        "retained": 1495
+      },
+      "frame_period_ms": {
+        "count": 1495,
+        "max": 62.350689,
+        "mean": 20.061350338461555,
+        "overflow": 0,
+        "p50": 20.747436,
+        "p95": 32.083552,
+        "p99": 37.238311,
+        "retained": 1495
+      },
+      "frame_submit_ms": {
+        "count": 1495,
+        "max": 1.401811,
+        "mean": 0.3054997652173912,
+        "overflow": 0,
+        "p50": 0.429759,
+        "p95": 0.626556,
+        "p99": 0.909848,
+        "retained": 1495
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1495,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7147.254539271,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7117.254539271,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 11.45228,
+        "mean": 10.146269681433871,
+        "overflow": 0,
+        "p50": 10.135161,
+        "p95": 10.238609,
+        "p99": 10.305499,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.245874,
+        "mean": 0.06637578796077093,
+        "overflow": 0,
+        "p50": 0.063661,
+        "p95": 0.106528,
+        "p99": 0.149911,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.039483,
+        "mean": 0.0010230314507947249,
+        "overflow": 0,
+        "p50": 0.00091,
+        "p95": 0.001835,
+        "p99": 0.002718,
+        "retained": 2957
+      },
+      "vision_fps": 49.833333333333336,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "both",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 172.71221314047077,
+        "rss_peak_mib": 883.5390625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 5853538,
+          "video_frames": 1046,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2454565,
+          "video_frames": 0,
+          "telemetry_samples": 3450,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "pooled_both_2": {
+      "algorithm_ms": {
+        "count": 1828,
+        "max": 34.347912,
+        "mean": 16.170163502188196,
+        "overflow": 0,
+        "p50": 16.564913,
+        "p95": 26.561346,
+        "p99": 29.731707,
+        "retained": 1828
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1828,
+        "max": 1.213858,
+        "mean": 0.23457709299781176,
+        "overflow": 0,
+        "p50": 0.001909,
+        "p95": 0.578923,
+        "p99": 0.688805,
+        "retained": 1828
+      },
+      "debug_run_counters": {
+        "encode_count": 1050,
+        "encode_max_ns": 2106987,
+        "encode_total_ns": 596378451,
+        "frame_copy_count": 1050,
+        "frame_copy_max_ns": 1778578,
+        "frame_copy_total_ns": 495825751,
+        "frames_accepted": 1050,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1050,
+        "raw_frame_allocations": 1,
+        "raw_frame_reuses": 1049,
+        "telemetry_accepted": 3449,
+        "telemetry_batches": 692,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 899,
+        "max": 1.279466,
+        "mean": 0.5696850767519466,
+        "overflow": 0,
+        "p50": 0.527825,
+        "p95": 1.033071,
+        "p99": 1.117317,
+        "retained": 899
+      },
+      "frame_age_ms": {
+        "count": 1828,
+        "max": 65.540005,
+        "mean": 29.841040816192542,
+        "overflow": 0,
+        "p50": 27.13646,
+        "p95": 50.320897,
+        "p99": 55.835576,
+        "retained": 1828
+      },
+      "frame_copy_ms": {
+        "count": 899,
+        "max": 1.203999,
+        "mean": 0.46915108898776403,
+        "overflow": 0,
+        "p50": 0.447719,
+        "p95": 0.619977,
+        "p99": 0.717653,
+        "retained": 899
+      },
+      "frame_loop_ms": {
+        "count": 1828,
+        "max": 34.764723,
+        "mean": 16.406419158643345,
+        "overflow": 0,
+        "p50": 16.660578,
+        "p95": 26.924134,
+        "p99": 30.171552,
+        "retained": 1828
+      },
+      "frame_period_ms": {
+        "count": 1828,
+        "max": 34.765232,
+        "mean": 16.40699551531727,
+        "overflow": 0,
+        "p50": 16.660936,
+        "p95": 26.924917,
+        "p99": 30.172331,
+        "retained": 1828
+      },
+      "frame_submit_ms": {
+        "count": 1828,
+        "max": 1.212036,
+        "mean": 0.2334516088621443,
+        "overflow": 0,
+        "p50": 0.000252,
+        "p95": 0.577832,
+        "p99": 0.687348,
+        "retained": 1828
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1828,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7336.195343514,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7306.195343514,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.518518,
+        "mean": 10.148698209742927,
+        "overflow": 0,
+        "p50": 10.137705,
+        "p95": 10.241306,
+        "p99": 10.316083,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.319921,
+        "mean": 0.0670170138700947,
+        "overflow": 0,
+        "p50": 0.063929,
+        "p95": 0.107315,
+        "p99": 0.137047,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 2956,
+        "max": 0.009401,
+        "mean": 0.001020923545331531,
+        "overflow": 0,
+        "p50": 0.000943,
+        "p95": 0.001863,
+        "p99": 0.002456,
+        "retained": 2956
+      },
+      "vision_fps": 60.93333333333333,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "both",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 169.0278278262983,
+        "rss_peak_mib": 833.5234375,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6382460,
+          "video_frames": 1050,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2452284,
+          "video_frames": 0,
+          "telemetry_samples": 3446,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "pooled_no_client_1": {
+      "algorithm_ms": {
+        "count": 1834,
+        "max": 34.292254,
+        "mean": 16.358425916575793,
+        "overflow": 0,
+        "p50": 16.65097,
+        "p95": 26.487122,
+        "p99": 29.226509,
+        "retained": 1834
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1834,
+        "max": 0.010353,
+        "mean": 0.0011506990185387144,
+        "overflow": 0,
+        "p50": 0.001095,
+        "p95": 0.001621,
+        "p99": 0.002006,
+        "retained": 1834
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "raw_frame_allocations": 0,
+        "raw_frame_reuses": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1834,
+        "max": 61.233631,
+        "mean": 29.623758774263877,
+        "overflow": 0,
+        "p50": 27.661401,
+        "p95": 49.248607,
+        "p99": 53.961883,
+        "retained": 1834
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1834,
+        "max": 34.294646,
+        "mean": 16.361131252453642,
+        "overflow": 0,
+        "p50": 16.653386,
+        "p95": 26.492403,
+        "p99": 29.22902,
+        "retained": 1834
+      },
+      "frame_period_ms": {
+        "count": 1834,
+        "max": 34.295073,
+        "mean": 16.361709258451498,
+        "overflow": 0,
+        "p50": 16.654026,
+        "p95": 26.492962,
+        "p99": 29.229871,
+        "retained": 1834
+      },
+      "frame_submit_ms": {
+        "count": 1834,
+        "max": 0.003603,
+        "mean": 2.7455288985823763e-05,
+        "overflow": 0,
+        "p50": 2.6e-05,
+        "p95": 2.9e-05,
+        "p99": 3.4e-05,
+        "retained": 1834
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1834,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7071.519604024,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7041.519604024,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.46814,
+        "mean": 10.149765491542604,
+        "overflow": 0,
+        "p50": 10.139306,
+        "p95": 10.241046,
+        "p99": 10.315137,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.389473,
+        "mean": 0.06753076589986462,
+        "overflow": 0,
+        "p50": 0.064736,
+        "p95": 0.105285,
+        "p99": 0.140154,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 2956,
+        "max": 0.045392,
+        "mean": 0.0008696809878213803,
+        "overflow": 0,
+        "p50": 0.000801,
+        "p95": 0.001585,
+        "p99": 0.00214,
+        "retained": 2956
+      },
+      "vision_fps": 61.13333333333333,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "no_client",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 164.24413106031014,
+        "rss_peak_mib": 821.0390625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "pooled_no_client_2": {
+      "algorithm_ms": {
+        "count": 1893,
+        "max": 33.045344,
+        "mean": 15.846806152667723,
+        "overflow": 0,
+        "p50": 16.182135,
+        "p95": 26.003456,
+        "p99": 28.990633,
+        "retained": 1893
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1893,
+        "max": 0.007172,
+        "mean": 0.0011390692023243545,
+        "overflow": 0,
+        "p50": 0.001107,
+        "p95": 0.001608,
+        "p99": 0.001985,
+        "retained": 1893
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "raw_frame_allocations": 0,
+        "raw_frame_reuses": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1893,
+        "max": 59.042856,
+        "mean": 28.58446784838878,
+        "overflow": 0,
+        "p50": 26.265178,
+        "p95": 47.099331,
+        "p99": 53.419491,
+        "retained": 1893
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1893,
+        "max": 33.048054,
+        "mean": 15.849437468040145,
+        "overflow": 0,
+        "p50": 16.184921,
+        "p95": 26.006433,
+        "p99": 28.993364,
+        "retained": 1893
+      },
+      "frame_period_ms": {
+        "count": 1893,
+        "max": 33.048551,
+        "mean": 15.8500155467512,
+        "overflow": 0,
+        "p50": 16.185485,
+        "p95": 26.007237,
+        "p99": 28.993972,
+        "retained": 1893
+      },
+      "frame_submit_ms": {
+        "count": 1893,
+        "max": 0.000119,
+        "mean": 2.4293185419968356e-05,
+        "overflow": 0,
+        "p50": 2.5e-05,
+        "p95": 2.9e-05,
+        "p99": 3.4e-05,
+        "retained": 1893
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1893,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7260.627748243,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7230.627748243,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 10.524019,
+        "mean": 10.146710116334146,
+        "overflow": 0,
+        "p50": 10.136144,
+        "p95": 10.237712,
+        "p99": 10.306057,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.33588,
+        "mean": 0.06487000067636102,
+        "overflow": 0,
+        "p50": 0.062288,
+        "p95": 0.102468,
+        "p99": 0.138183,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.009028,
+        "mean": 0.0008023723368278663,
+        "overflow": 0,
+        "p50": 0.000766,
+        "p95": 0.001478,
+        "p99": 0.001978,
+        "retained": 2957
+      },
+      "vision_fps": 63.1,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "no_client",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 162.24121455966872,
+        "rss_peak_mib": 886.2421875,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "pooled_off_1": {
+      "algorithm_ms": {
+        "count": 1941,
+        "max": 37.516909,
+        "mean": 15.453459266357534,
+        "overflow": 0,
+        "p50": 15.350083,
+        "p95": 25.878195,
+        "p99": 29.037405,
+        "retained": 1941
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1941,
+        "max": 0.005169,
+        "mean": 0.0006532029881504383,
+        "overflow": 0,
+        "p50": 0.000626,
+        "p95": 0.000929,
+        "p99": 0.00122,
+        "retained": 1941
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "raw_frame_allocations": 0,
+        "raw_frame_reuses": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1941,
+        "max": 63.291534,
+        "mean": 27.821343629572326,
+        "overflow": 0,
+        "p50": 25.70376,
+        "p95": 46.587629,
+        "p99": 53.073796,
+        "retained": 1941
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1941,
+        "max": 37.519283,
+        "mean": 15.455689670273049,
+        "overflow": 0,
+        "p50": 15.351835,
+        "p95": 25.880178,
+        "p99": 29.03954,
+        "retained": 1941
+      },
+      "frame_period_ms": {
+        "count": 1941,
+        "max": 37.519659,
+        "mean": 15.456282987635227,
+        "overflow": 0,
+        "p50": 15.352252,
+        "p95": 25.880794,
+        "p99": 29.040205,
+        "retained": 1941
+      },
+      "frame_submit_ms": {
+        "count": 1941,
+        "max": 0.000348,
+        "mean": 7.631324059762961e-05,
+        "overflow": 0,
+        "p50": 8.4e-05,
+        "p95": 0.000185,
+        "p99": 0.000256,
+        "retained": 1941
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1941,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7033.714425894,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7003.714425894,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 10.434599,
+        "mean": 10.145051068312494,
+        "overflow": 0,
+        "p50": 10.136488,
+        "p95": 10.227777,
+        "p99": 10.295734,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.329105,
+        "mean": 0.06412307710517423,
+        "overflow": 0,
+        "p50": 0.061874,
+        "p95": 0.101896,
+        "p99": 0.145527,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.028429,
+        "mean": 0.00029832769699019275,
+        "overflow": 0,
+        "p50": 0.000257,
+        "p95": 0.000575,
+        "p99": 0.00079,
+        "retained": 2957
+      },
+      "vision_fps": 64.7,
+      "warmup_seconds": 5.0,
+      "web_override": "off",
+      "label": "pooled",
+      "mode": "off",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 165.8483530534162,
+        "rss_peak_mib": 803.20703125,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "pooled_off_2": {
+      "algorithm_ms": {
+        "count": 1814,
+        "max": 32.264516,
+        "mean": 16.53886152425579,
+        "overflow": 0,
+        "p50": 16.890149,
+        "p95": 26.498163,
+        "p99": 29.817654,
+        "retained": 1814
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1814,
+        "max": 0.0085,
+        "mean": 0.0006095170893054029,
+        "overflow": 0,
+        "p50": 0.000578,
+        "p95": 0.000881,
+        "p99": 0.001047,
+        "retained": 1814
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "raw_frame_allocations": 0,
+        "raw_frame_reuses": 0,
+        "telemetry_accepted": 0,
+        "telemetry_batches": 0,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1814,
+        "max": 61.866894,
+        "mean": 30.0334684178611,
+        "overflow": 0,
+        "p50": 27.188548,
+        "p95": 49.331084,
+        "p99": 54.184128,
+        "retained": 1814
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1814,
+        "max": 32.26722,
+        "mean": 16.541101486769588,
+        "overflow": 0,
+        "p50": 16.892197,
+        "p95": 26.50034,
+        "p99": 29.822736,
+        "retained": 1814
+      },
+      "frame_period_ms": {
+        "count": 1814,
+        "max": 32.267751,
+        "mean": 16.541674675854473,
+        "overflow": 0,
+        "p50": 16.892674,
+        "p95": 26.500838,
+        "p99": 29.824814,
+        "retained": 1814
+      },
+      "frame_submit_ms": {
+        "count": 1814,
+        "max": 0.000206,
+        "mean": 2.484178610804894e-05,
+        "overflow": 0,
+        "p50": 2.6e-05,
+        "p95": 2.9e-05,
+        "p99": 3.3e-05,
+        "retained": 1814
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1814,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7222.733119946,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7192.733119946,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 10.458056,
+        "mean": 10.144103006763624,
+        "overflow": 0,
+        "p50": 10.135197,
+        "p95": 10.227449,
+        "p99": 10.304491,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.299293,
+        "mean": 0.0644272874535002,
+        "overflow": 0,
+        "p50": 0.062278,
+        "p95": 0.099869,
+        "p99": 0.133686,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.028793,
+        "mean": 0.00029688603314169767,
+        "overflow": 0,
+        "p50": 0.000273,
+        "p95": 0.000559,
+        "p99": 0.000752,
+        "retained": 2957
+      },
+      "vision_fps": 60.46666666666667,
+      "warmup_seconds": 5.0,
+      "web_override": "off",
+      "label": "pooled",
+      "mode": "off",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 163.71585817203618,
+        "rss_peak_mib": 817.65234375,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": []
+    },
+    "pooled_slow_1": {
+      "algorithm_ms": {
+        "count": 1711,
+        "max": 41.021234,
+        "mean": 17.27125799240209,
+        "overflow": 0,
+        "p50": 16.399294,
+        "p95": 31.152293,
+        "p99": 36.217179,
+        "retained": 1711
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1711,
+        "max": 1.34022,
+        "mean": 0.2685322022209235,
+        "overflow": 0,
+        "p50": 0.39018,
+        "p95": 0.61552,
+        "p99": 0.957622,
+        "retained": 1711
+      },
+      "debug_run_counters": {
+        "encode_count": 1046,
+        "encode_max_ns": 3255233,
+        "encode_total_ns": 636938906,
+        "frame_copy_count": 1046,
+        "frame_copy_max_ns": 1753929,
+        "frame_copy_total_ns": 533118265,
+        "frames_accepted": 1046,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1071,
+        "raw_frame_allocations": 1,
+        "raw_frame_reuses": 1045,
+        "telemetry_accepted": 3449,
+        "telemetry_batches": 692,
+        "telemetry_client_dropped": 3244,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 1021
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 897,
+        "max": 1.333464,
+        "mean": 0.605348828316611,
+        "overflow": 0,
+        "p50": 0.53797,
+        "p95": 1.074146,
+        "p99": 1.168065,
+        "retained": 897
+      },
+      "frame_age_ms": {
+        "count": 1711,
+        "max": 76.89799,
+        "mean": 32.06626980070134,
+        "overflow": 0,
+        "p50": 26.994666,
+        "p95": 59.713676,
+        "p99": 66.616272,
+        "retained": 1711
+      },
+      "frame_copy_ms": {
+        "count": 897,
+        "max": 1.33167,
+        "mean": 0.5045676833890747,
+        "overflow": 0,
+        "p50": 0.475559,
+        "p95": 0.66745,
+        "p99": 1.176029,
+        "retained": 897
+      },
+      "frame_loop_ms": {
+        "count": 1711,
+        "max": 41.679853,
+        "mean": 17.541525069549976,
+        "overflow": 0,
+        "p50": 16.753803,
+        "p95": 31.573864,
+        "p99": 36.824946,
+        "retained": 1711
+      },
+      "frame_period_ms": {
+        "count": 1711,
+        "max": 41.680553,
+        "mean": 17.542106070134384,
+        "overflow": 0,
+        "p50": 16.75488,
+        "p95": 31.574501,
+        "p99": 36.825543,
+        "retained": 1711
+      },
+      "frame_submit_ms": {
+        "count": 1711,
+        "max": 1.338233,
+        "mean": 0.2674311461133841,
+        "overflow": 0,
+        "p50": 0.389271,
+        "p95": 0.614295,
+        "p99": 0.956781,
+        "retained": 1711
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1711,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7185.051609925,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7155.051609925,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.495924,
+        "mean": 10.14930344215159,
+        "overflow": 0,
+        "p50": 10.139029,
+        "p95": 10.237312,
+        "p99": 10.301809,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.396753,
+        "mean": 0.06939591102841677,
+        "overflow": 0,
+        "p50": 0.065562,
+        "p95": 0.110554,
+        "p99": 0.150504,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 2956,
+        "max": 0.034067,
+        "mean": 0.0010394895128552103,
+        "overflow": 0,
+        "p50": 0.000954,
+        "p95": 0.001837,
+        "p99": 0.002441,
+        "retained": 2956
+      },
+      "vision_fps": 57.03333333333333,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "slow",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 171.70457954871452,
+        "rss_peak_mib": 830.64453125,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 5885856,
+          "video_frames": 1046,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2452259,
+          "video_frames": 0,
+          "telemetry_samples": 3446,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ],
+      "backpressure_observed": {
+        "video": true,
+        "telemetry": true
+      }
+    },
+    "pooled_slow_2": {
+      "algorithm_ms": {
+        "count": 1929,
+        "max": 34.024165,
+        "mean": 15.329461288750622,
+        "overflow": 0,
+        "p50": 15.084382,
+        "p95": 25.593218,
+        "p99": 29.111171,
+        "retained": 1929
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1929,
+        "max": 1.184101,
+        "mean": 0.2201061824779678,
+        "overflow": 0,
+        "p50": 0.001669,
+        "p95": 0.571893,
+        "p99": 0.687403,
+        "retained": 1929
+      },
+      "debug_run_counters": {
+        "encode_count": 1050,
+        "encode_max_ns": 2766336,
+        "encode_total_ns": 626309329,
+        "frame_copy_count": 1050,
+        "frame_copy_max_ns": 1797312,
+        "frame_copy_total_ns": 495108303,
+        "frames_accepted": 1050,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 1073,
+        "raw_frame_allocations": 1,
+        "raw_frame_reuses": 1049,
+        "telemetry_accepted": 3450,
+        "telemetry_batches": 692,
+        "telemetry_client_dropped": 3247,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 1027
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 900,
+        "max": 1.209992,
+        "mean": 0.5726391533333334,
+        "overflow": 0,
+        "p50": 0.529448,
+        "p95": 1.053032,
+        "p99": 1.1325,
+        "retained": 900
+      },
+      "frame_age_ms": {
+        "count": 1929,
+        "max": 62.774656,
+        "mean": 28.039338265422526,
+        "overflow": 0,
+        "p50": 26.001164,
+        "p95": 47.503748,
+        "p99": 54.314196,
+        "retained": 1929
+      },
+      "frame_copy_ms": {
+        "count": 900,
+        "max": 1.175265,
+        "mean": 0.46406524111111075,
+        "overflow": 0,
+        "p50": 0.440672,
+        "p95": 0.618954,
+        "p99": 0.780363,
+        "retained": 900
+      },
+      "frame_loop_ms": {
+        "count": 1929,
+        "max": 34.583881,
+        "mean": 15.551139611197524,
+        "overflow": 0,
+        "p50": 15.232183,
+        "p95": 26.065278,
+        "p99": 29.655748,
+        "retained": 1929
+      },
+      "frame_period_ms": {
+        "count": 1929,
+        "max": 34.584853,
+        "mean": 15.551707927423532,
+        "overflow": 0,
+        "p50": 15.232878,
+        "p95": 26.066167,
+        "p99": 29.656524,
+        "retained": 1929
+      },
+      "frame_submit_ms": {
+        "count": 1929,
+        "max": 1.182883,
+        "mean": 0.21891299999999975,
+        "overflow": 0,
+        "p50": 2.8e-05,
+        "p95": 0.570614,
+        "p99": 0.685903,
+        "retained": 1929
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1929,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7374.143085201,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7344.143085201,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 11.078448,
+        "mean": 10.146228871153193,
+        "overflow": 0,
+        "p50": 10.136321,
+        "p95": 10.230524,
+        "p99": 10.293917,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.396472,
+        "mean": 0.06508775312817039,
+        "overflow": 0,
+        "p50": 0.062253,
+        "p95": 0.103099,
+        "p99": 0.146263,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.030155,
+        "mean": 0.0009676154886709503,
+        "overflow": 0,
+        "p50": 0.000882,
+        "p95": 0.001714,
+        "p99": 0.002313,
+        "retained": 2957
+      },
+      "vision_fps": 64.3,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "slow",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 168.46942556025496,
+        "rss_peak_mib": 902.28515625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws",
+          "stalled": false,
+          "connected": true,
+          "bytes": 6575505,
+          "video_frames": 1050,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2452458,
+          "video_frames": 0,
+          "telemetry_samples": 3450,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        },
+        {
+          "path": "/ws/telemetry",
+          "stalled": true,
+          "connected": true,
+          "bytes": 0,
+          "video_frames": 0,
+          "telemetry_samples": 0,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ],
+      "backpressure_observed": {
+        "video": true,
+        "telemetry": true
+      }
+    },
+    "pooled_telemetry_1": {
+      "algorithm_ms": {
+        "count": 1834,
+        "max": 34.035344,
+        "mean": 16.3606351837514,
+        "overflow": 0,
+        "p50": 16.684709,
+        "p95": 26.53964,
+        "p99": 29.499654,
+        "retained": 1834
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1834,
+        "max": 0.013608,
+        "mean": 0.001077485278080699,
+        "overflow": 0,
+        "p50": 0.001027,
+        "p95": 0.001531,
+        "p99": 0.001909,
+        "retained": 1834
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "raw_frame_allocations": 0,
+        "raw_frame_reuses": 0,
+        "telemetry_accepted": 3451,
+        "telemetry_batches": 698,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1834,
+        "max": 60.159733,
+        "mean": 29.707683909487457,
+        "overflow": 0,
+        "p50": 27.192255,
+        "p95": 48.730304,
+        "p99": 54.722389,
+        "retained": 1834
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1834,
+        "max": 34.038685,
+        "mean": 16.363289946564883,
+        "overflow": 0,
+        "p50": 16.687741,
+        "p95": 26.543003,
+        "p99": 29.50218,
+        "retained": 1834
+      },
+      "frame_period_ms": {
+        "count": 1834,
+        "max": 34.039265,
+        "mean": 16.363876458560526,
+        "overflow": 0,
+        "p50": 16.688316,
+        "p95": 26.543437,
+        "p99": 29.50261,
+        "retained": 1834
+      },
+      "frame_submit_ms": {
+        "count": 1834,
+        "max": 0.000309,
+        "mean": 2.4734460196292542e-05,
+        "overflow": 0,
+        "p50": 2.4e-05,
+        "p95": 3e-05,
+        "p99": 6.7e-05,
+        "retained": 1834
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1834,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7109.234758577,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7079.234758577,
+      "plan_period_ms": {
+        "count": 2957,
+        "max": 10.452898,
+        "mean": 10.145557517754483,
+        "overflow": 0,
+        "p50": 10.136179,
+        "p95": 10.23317,
+        "p99": 10.307932,
+        "retained": 2957
+      },
+      "plan_work_ms": {
+        "count": 2957,
+        "max": 0.33255,
+        "mean": 0.06542026445722024,
+        "overflow": 0,
+        "p50": 0.063706,
+        "p95": 0.101257,
+        "p99": 0.134548,
+        "retained": 2957
+      },
+      "telemetry_submit_ms": {
+        "count": 2957,
+        "max": 0.011612,
+        "mean": 0.0009410043963476488,
+        "overflow": 0,
+        "p50": 0.000883,
+        "p95": 0.00174,
+        "p99": 0.00232,
+        "retained": 2957
+      },
+      "vision_fps": 61.13333333333333,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "telemetry",
+      "repeat": 1,
+      "process_resources": {
+        "cpu_percent_one_core": 164.41377033948532,
+        "rss_peak_mib": 824.09765625,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2454285,
+          "video_frames": 0,
+          "telemetry_samples": 3451,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    },
+    "pooled_telemetry_2": {
+      "algorithm_ms": {
+        "count": 1858,
+        "max": 33.363199,
+        "mean": 16.13785904036597,
+        "overflow": 0,
+        "p50": 16.459415,
+        "p95": 26.013813,
+        "p99": 28.990012,
+        "retained": 1858
+      },
+      "config": "configs/sentry.yaml",
+      "debug_prepare_ms": {
+        "count": 1858,
+        "max": 0.009096,
+        "mean": 0.0011001593110871902,
+        "overflow": 0,
+        "p50": 0.001062,
+        "p95": 0.001572,
+        "p99": 0.001965,
+        "retained": 1858
+      },
+      "debug_run_counters": {
+        "encode_count": 0,
+        "encode_max_ns": 0,
+        "encode_total_ns": 0,
+        "frame_copy_count": 0,
+        "frame_copy_max_ns": 0,
+        "frame_copy_total_ns": 0,
+        "frames_accepted": 0,
+        "frames_busy": 0,
+        "frames_overwritten": 0,
+        "frames_sent": 0,
+        "raw_frame_allocations": 0,
+        "raw_frame_reuses": 0,
+        "telemetry_accepted": 3449,
+        "telemetry_batches": 697,
+        "telemetry_client_dropped": 0,
+        "telemetry_expired_dropped": 0,
+        "telemetry_full_dropped": 0,
+        "video_client_dropped": 0
+      },
+      "elapsed_seconds": 30.0,
+      "encode_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_age_ms": {
+        "count": 1858,
+        "max": 57.019083,
+        "mean": 29.148398503229284,
+        "overflow": 0,
+        "p50": 26.8658,
+        "p95": 46.992019,
+        "p99": 52.49436,
+        "retained": 1858
+      },
+      "frame_copy_ms": {
+        "count": 0,
+        "overflow": 0,
+        "retained": 0
+      },
+      "frame_loop_ms": {
+        "count": 1858,
+        "max": 33.36574,
+        "mean": 16.140492421420912,
+        "overflow": 0,
+        "p50": 16.461568,
+        "p95": 26.016713,
+        "p99": 28.992407,
+        "retained": 1858
+      },
+      "frame_period_ms": {
+        "count": 1858,
+        "max": 33.36637,
+        "mean": 16.141099286329393,
+        "overflow": 0,
+        "p50": 16.462088,
+        "p95": 26.017458,
+        "p99": 28.992955,
+        "retained": 1858
+      },
+      "frame_submit_ms": {
+        "count": 1858,
+        "max": 0.000312,
+        "mean": 2.5122174381055065e-05,
+        "overflow": 0,
+        "p50": 2.5e-05,
+        "p95": 2.9e-05,
+        "p99": 3.5e-05,
+        "retained": 1858
+      },
+      "image_height": 1080,
+      "image_width": 1440,
+      "measured_frames": 1858,
+      "measurement_complete": true,
+      "measurement_end_monotonic": 7298.281934642,
+      "measurement_seconds": 30.0,
+      "measurement_start_monotonic": 7268.281934642,
+      "plan_period_ms": {
+        "count": 2956,
+        "max": 10.440683,
+        "mean": 10.1497740084574,
+        "overflow": 0,
+        "p50": 10.139027,
+        "p95": 10.243491,
+        "p99": 10.313555,
+        "retained": 2956
+      },
+      "plan_work_ms": {
+        "count": 2956,
+        "max": 0.336637,
+        "mean": 0.06596959844384309,
+        "overflow": 0,
+        "p50": 0.063525,
+        "p95": 0.104856,
+        "p99": 0.140153,
+        "retained": 2956
+      },
+      "telemetry_submit_ms": {
+        "count": 2956,
+        "max": 0.028529,
+        "mean": 0.0010241968876860614,
+        "overflow": 0,
+        "p50": 0.000952,
+        "p95": 0.001837,
+        "p99": 0.00255,
+        "retained": 2956
+      },
+      "vision_fps": 61.93333333333333,
+      "warmup_seconds": 5.0,
+      "web_override": "on",
+      "label": "pooled",
+      "mode": "telemetry",
+      "repeat": 2,
+      "process_resources": {
+        "cpu_percent_one_core": 161.4976888876906,
+        "rss_peak_mib": 819.3203125,
+        "scope": "200 ms samples within measurement interval; excludes viewer processes"
+      },
+      "viewers": [
+        {
+          "path": "/ws/telemetry",
+          "stalled": false,
+          "connected": true,
+          "bytes": 2451895,
+          "video_frames": 0,
+          "telemetry_samples": 3446,
+          "valid_targets": 0,
+          "control_samples": 0,
+          "error": null
+        }
+      ]
+    }
+  },
+  "copy_comparison": {
+    "aggregate": {
+      "fresh_raw_copy": {
+        "copy_ms": {
+          "count": 9000,
+          "max": 0.99818,
+          "mean": 0.24530535333333345,
+          "p50": 0.228366,
+          "p95": 0.379722,
+          "p99": 0.523197
+        },
+        "copy_plus_release_ms": {
+          "count": 9000,
+          "max": 0.999035,
+          "mean": 0.24547450755555525,
+          "p50": 0.228479,
+          "p95": 0.380066,
+          "p99": 0.52335
+        }
+      },
+      "legacy_resize_640": {
+        "copy_ms": {
+          "count": 9000,
+          "max": 0.716273,
+          "mean": 0.23015174833333402,
+          "p50": 0.211261,
+          "p95": 0.357341,
+          "p99": 0.434285
+        },
+        "copy_plus_release_ms": {
+          "count": 9000,
+          "max": 0.716452,
+          "mean": 0.23026091844444418,
+          "p50": 0.211348,
+          "p95": 0.357466,
+          "p99": 0.434462
+        }
+      },
+      "reuse_one_raw_buffer": {
+        "copy_ms": {
+          "count": 9000,
+          "max": 0.997594,
+          "mean": 0.24591196577777844,
+          "p50": 0.230646,
+          "p95": 0.374481,
+          "p99": 0.461037
+        },
+        "copy_plus_release_ms": {
+          "count": 9000,
+          "max": 0.997611,
+          "mean": 0.24592382922222164,
+          "p50": 0.230655,
+          "p95": 0.374492,
+          "p99": 0.461049
+        }
+      },
+      "reuse_three_raw_buffers": {
+        "copy_ms": {
+          "count": 9000,
+          "max": 1.080022,
+          "mean": 0.28959689977777875,
+          "p50": 0.265592,
+          "p95": 0.449102,
+          "p99": 0.574098
+        },
+        "copy_plus_release_ms": {
+          "count": 9000,
+          "max": 1.080038,
+          "mean": 0.2896089623333335,
+          "p50": 0.265629,
+          "p95": 0.449116,
+          "p99": 0.574109
+        }
+      }
+    },
+    "elapsed_seconds": 9.106459125999999,
+    "rounds": [
+      {
+        "measurement_seconds": 3.0004000310000003,
+        "paths": {
+          "fresh_raw_copy": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.99818,
+              "mean": 0.24076432200000025,
+              "p50": 0.224382,
+              "p95": 0.363828,
+              "p99": 0.484404
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.999035,
+              "mean": 0.24093036633333406,
+              "p50": 0.224521,
+              "p95": 0.364053,
+              "p99": 0.486293
+            }
+          },
+          "legacy_resize_640": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.616813,
+              "mean": 0.22866329466666685,
+              "p50": 0.208356,
+              "p95": 0.361565,
+              "p99": 0.443891
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.617126,
+              "mean": 0.22878098966666652,
+              "p50": 0.208421,
+              "p95": 0.361746,
+              "p99": 0.444179
+            }
+          },
+          "reuse_one_raw_buffer": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.615225,
+              "mean": 0.24818493100000039,
+              "p50": 0.236761,
+              "p95": 0.366804,
+              "p99": 0.421168
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.615245,
+              "mean": 0.24819680066666633,
+              "p50": 0.236771,
+              "p95": 0.366818,
+              "p99": 0.421179
+            }
+          },
+          "reuse_three_raw_buffers": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.701556,
+              "mean": 0.2819142860000002,
+              "p50": 0.26458,
+              "p95": 0.418099,
+              "p99": 0.49789
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.701568,
+              "mean": 0.28192641933333307,
+              "p50": 0.264593,
+              "p95": 0.41811,
+              "p99": 0.497901
+            }
+          }
+        },
+        "round": 1
+      },
+      {
+        "measurement_seconds": 2.9152731800000002,
+        "paths": {
+          "fresh_raw_copy": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.927695,
+              "mean": 0.23760029499999988,
+              "p50": 0.213607,
+              "p95": 0.368215,
+              "p99": 0.603984
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.928921,
+              "mean": 0.23776667833333381,
+              "p50": 0.213762,
+              "p95": 0.368562,
+              "p99": 0.604606
+            }
+          },
+          "legacy_resize_640": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.716273,
+              "mean": 0.2243969693333334,
+              "p50": 0.207096,
+              "p95": 0.339509,
+              "p99": 0.422459
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.716452,
+              "mean": 0.22450823333333353,
+              "p50": 0.207241,
+              "p95": 0.339598,
+              "p99": 0.422593
+            }
+          },
+          "reuse_one_raw_buffer": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.997594,
+              "mean": 0.2349399753333331,
+              "p50": 0.211272,
+              "p95": 0.359955,
+              "p99": 0.496116
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.997611,
+              "mean": 0.2349519206666667,
+              "p50": 0.211284,
+              "p95": 0.359967,
+              "p99": 0.496128
+            }
+          },
+          "reuse_three_raw_buffers": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 1.017937,
+              "mean": 0.2742514010000001,
+              "p50": 0.234948,
+              "p95": 0.443876,
+              "p99": 0.650198
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 1.017955,
+              "mean": 0.2742633376666668,
+              "p50": 0.234959,
+              "p95": 0.443886,
+              "p99": 0.650211
+            }
+          }
+        },
+        "round": 2
+      },
+      {
+        "measurement_seconds": 3.1883357460000004,
+        "paths": {
+          "fresh_raw_copy": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.68144,
+              "mean": 0.2575514430000005,
+              "p50": 0.245599,
+              "p95": 0.3988,
+              "p99": 0.484886
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.68272,
+              "mean": 0.25772647799999987,
+              "p50": 0.245722,
+              "p95": 0.398977,
+              "p99": 0.485866
+            }
+          },
+          "legacy_resize_640": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.593973,
+              "mean": 0.2373949809999998,
+              "p50": 0.217832,
+              "p95": 0.362748,
+              "p99": 0.434285
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.594049,
+              "mean": 0.23749353233333334,
+              "p50": 0.217944,
+              "p95": 0.362797,
+              "p99": 0.434462
+            }
+          },
+          "reuse_one_raw_buffer": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 0.605097,
+              "mean": 0.2546109910000002,
+              "p50": 0.245101,
+              "p95": 0.391805,
+              "p99": 0.464026
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 0.605113,
+              "mean": 0.25462276633333314,
+              "p50": 0.245111,
+              "p95": 0.391816,
+              "p99": 0.464037
+            }
+          },
+          "reuse_three_raw_buffers": {
+            "copy_ms": {
+              "count": 3000,
+              "max": 1.080022,
+              "mean": 0.31262501233333273,
+              "p50": 0.299579,
+              "p95": 0.481198,
+              "p99": 0.590565
+            },
+            "copy_plus_release_ms": {
+              "count": 3000,
+              "max": 1.080038,
+              "mean": 0.3126371300000004,
+              "p50": 0.299603,
+              "p95": 0.481211,
+              "p99": 0.590577
+            }
+          }
+        },
+        "round": 3
+      }
+    ],
+    "settings": {
+      "blocks_per_path_per_round": 60,
+      "opencv_threads": 32,
+      "raw_pool_buffers": 3,
+      "rounds": 3,
+      "samples_per_block": 50,
+      "shuffle_seed": 20261103,
+      "warmup_per_path": 100
+    },
+    "source": {
+      "bytes": 4665600,
+      "height": 1080,
+      "ring_images": 8,
+      "type": "CV_8UC3",
+      "width": 1440
+    },
+    "timing_notes": "copy_ms includes destination allocation or reuse and the image operation; copy_plus_release_ms also includes release for fresh destinations and one intermediate clock read. Reused destinations stay allocated. No CPU affinity or OpenCV thread settings are changed."
+  },
+  "browser_check": {
+    "ok": true,
+    "before": {
+      "count": 61,
+      "seq": 60,
+      "dimensions": [
+        640,
+        480
+      ],
+      "frameSeq": 17,
+      "copy": "19.7 ms"
+    },
+    "paused": {
+      "count": 184,
+      "seq": 183,
+      "videoPaused": true,
+      "status": "遥测：实时"
+    },
+    "errors": []
+  },
+  "acceptance": [
+    {
+      "mode": "no_client",
+      "repeat": 1,
+      "fps_ratio": 0.9448737764039155,
+      "checks": [
+        false,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "mode": "telemetry",
+      "repeat": 1,
+      "fps_ratio": 0.9448737764039155,
+      "checks": [
+        false,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "mode": "both",
+      "repeat": 1,
+      "fps_ratio": 0.7702215352910871,
+      "checks": [
+        false,
+        false,
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "mode": "slow",
+      "repeat": 1,
+      "fps_ratio": 0.8815043791859866,
+      "checks": [
+        false,
+        false,
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "mode": "no_client",
+      "repeat": 2,
+      "fps_ratio": 1.043550165380375,
+      "checks": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "mode": "telemetry",
+      "repeat": 2,
+      "fps_ratio": 1.02425578831312,
+      "checks": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "mode": "both",
+      "repeat": 2,
+      "fps_ratio": 1.0077177508269017,
+      "checks": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "mode": "slow",
+      "repeat": 2,
+      "fps_ratio": 1.0633958103638368,
+      "checks": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  ]
+}

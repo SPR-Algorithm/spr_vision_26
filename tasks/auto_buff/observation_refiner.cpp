@@ -1,7 +1,6 @@
 #include "observation_refiner.hpp"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>

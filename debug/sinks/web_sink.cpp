@@ -1,6 +1,5 @@
 #include "web_sink.hpp"
 
-#include "../param_tuner.hpp"
 #include "tasks/auto_aim/armor.hpp"
 #include "tools/logger.hpp"
 
@@ -38,21 +37,20 @@ std::vector<DetectionData> WebSink::to_detections(
   return dets;
 }
 
-WebSink::WebSink(int port, const std::string& bind) : web_(port, bind) {
-  web_.start();
-  web_.push_param_sets();
-  tools::logger()->info("Web debugger: http://{}:{}", bind, port);
+WebSink::WebSink(int port, const std::string& bind, const StreamConfig& stream)
+    : web_(port, bind, stream) {
+  if (web_.start()) tools::logger()->info("Web debugger: http://{}:{}", bind, port);
 }
 
 void WebSink::push_frame(const FrameDebugData& data) {
+  push_frame(try_begin_frame(), data);
+}
+
+void WebSink::push_frame(FramePermit&& permit, const FrameDebugData& data) {
+  if (!permit) return;
   std::vector<DetectionData> dets;
   if (data.armors) dets = to_detections(*data.armors);
-  web_.push(data.frame, dets, data.reprojections, data.latency_ms);
-
-  const auto ekf_state = ParamTuner::instance().latest_ekf_state();
-  if (ekf_state.timestamp > 0) {
-    web_.push_ekf_state(ekf_state);
-  }
+  web_.push(std::move(permit), data.frame, dets, data.reprojections, data.proc_ms, data.capture_time);
 }
 
 }  // namespace debug

@@ -53,10 +53,8 @@ public:
   void load_from_yaml(const std::string & config_path);
 
   // 获取当前应使用的参数集（基于角速度自动选择）
-  const FilterParamSet & select(double angular_velocity) const;
-
-  // 获取所有参数集（只读）
-  const std::vector<FilterParamSet> & param_sets() const { return param_sets_; }
+  // 按值返回：参数集可能被 WebSocket 线程同时修改
+  FilterParamSet select(double angular_velocity) const;
 
   // 运行时更新某个参数集（由 GUI 触发）
   void update_param_set(int index, const FilterParamSet & ps);
@@ -74,10 +72,10 @@ public:
 
   // 序列化参数集列表为 JSON
   std::string param_sets_to_json() const;
-  std::string ekf_state_to_json() const;
+  static std::string ekf_state_to_json(const EKFStateData & state);
 
-  // 从 JSON 更新参数集
-  void update_from_json(const std::string & json);
+  // 处理 {"cmd":"update_param","index":0,"v1":...}；参数不合法时返回 false 并填写 err，不抛异常
+  bool update_from_json(const std::string & json, std::string & err);
 
 private:
   ParamTuner() = default;

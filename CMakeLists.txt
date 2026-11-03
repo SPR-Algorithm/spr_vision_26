@@ -2,6 +2,19 @@ cmake_minimum_required(VERSION 3.16.3)
 
 project(spr_vision_26)
 
+# 仅支持 ROS2 Humble;若当前环境不是 Humble(例如 Jazzy),则跳过所有 ROS2 相关包的编译
+set(SPR_USE_ROS2 OFF)
+if(DEFINED ENV{ROS_DISTRO})
+  if("$ENV{ROS_DISTRO}" STREQUAL "humble")
+    set(SPR_USE_ROS2 ON)
+  endif()
+endif()
+if(SPR_USE_ROS2)
+  message(STATUS "ROS2 Humble detected, enabling ROS2 packages.")
+else()
+  message(STATUS "ROS2 Humble NOT detected (ROS_DISTRO=$ENV{ROS_DISTRO}), skipping ROS2 packages.")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 message(STATUS "--------------------CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}--------------------")
@@ -60,10 +73,10 @@ add_subdirectory(tools)
 find_package(ament_cmake QUIET)
 find_package(builtin_interfaces QUIET)
 find_package(rosidl_default_generators QUIET)
-if(ament_cmake_FOUND AND builtin_interfaces_FOUND AND rosidl_default_generators_FOUND)
+if(SPR_USE_ROS2 AND ament_cmake_FOUND AND builtin_interfaces_FOUND AND rosidl_default_generators_FOUND)
   add_subdirectory(spr_msgs)
 else()
-  message(STATUS "ROS2 interface generators not found, skipping local spr_msgs package.")
+  message(STATUS "ROS2 Humble interface generators not found, skipping local spr_msgs package.")
 endif()
 add_subdirectory(io)
 add_subdirectory(tasks/auto_aim)
@@ -108,9 +121,16 @@ target_link_libraries(calibrate_robotworld_handeye ${OpenCV_LIBS} fmt::fmt yaml-
 target_link_libraries(split_video ${OpenCV_LIBS} fmt::fmt tools)
 
 ##################tests##################
+include(CTest)
+
 add_executable(auto_aim_test tests/auto_aim_test.cpp)
 add_executable(auto_buff_test tests/auto_buff_test.cpp)
+add_executable(buff_observation_test tests/buff_observation_test.cpp)
+add_executable(buff_processor_protocol_test tests/buff_processor_protocol_test.cpp)
+add_executable(buff_detector_adapter_test tests/buff_detector_adapter_test.cpp)
 add_executable(buff_detector_test tests/buff_detector_test.cpp)
+add_executable(buff_refiner_video_test tests/buff_refiner_video_test.cpp)
+add_executable(yolo11_buff_video_test tests/yolo11_buff_video_test.cpp)
 add_executable(camera_detect_test tests/camera_detect_test.cpp)
 add_executable(camera_test tests/camera_test.cpp)
 add_executable(camera_thread_test tests/camera_thread_test.cpp)
@@ -128,7 +148,12 @@ add_executable(minimum_vision_system tests/minimum_vision_system.cpp)
 
 target_link_libraries(auto_aim_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
 target_link_libraries(auto_buff_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+target_link_libraries(buff_observation_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+target_link_libraries(buff_processor_protocol_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+target_link_libraries(buff_detector_adapter_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
 target_link_libraries(buff_detector_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
+target_link_libraries(buff_refiner_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
+target_link_libraries(yolo11_buff_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
 target_link_libraries(camera_detect_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools auto_aim io)
 target_link_libraries(camera_test ${OpenCV_LIBS} fmt::fmt tools io)
 target_link_libraries(camera_thread_test ${OpenCV_LIBS} fmt::fmt auto_aim tools io)
@@ -143,6 +168,16 @@ target_link_libraries(usbcamera_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io)
 target_link_libraries(handeye_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
 target_link_libraries(dm_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io)
 target_link_libraries(minimum_vision_system ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
+
+if(BUILD_TESTING)
+  add_test(NAME buff_observation_test COMMAND buff_observation_test)
+  set_tests_properties(
+    buff_observation_test
+    PROPERTIES
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      LABELS "unit;headless;auto_buff"
+      TIMEOUT 10)
+endif()
 
 
 add_executable(gimbal_test tests/gimbal_test.cpp)
@@ -164,8 +199,8 @@ if(TARGET spr_msgs)
 else()
     find_package(spr_msgs QUIET)
 endif()
-# 只有在找到 ROS 环境时才会添加 sentry 和 publish_test
-if(ament_cmake_FOUND AND rclcpp_FOUND AND std_msgs_FOUND AND rosidl_typesupport_cpp_FOUND AND spr_msgs_FOUND)
+# 只有在找到 ROS2 Humble 环境时才会添加 sentry 和 publish_test
+if(SPR_USE_ROS2 AND ament_cmake_FOUND AND rclcpp_FOUND AND std_msgs_FOUND AND rosidl_typesupport_cpp_FOUND AND spr_msgs_FOUND)
     # 编译 sentry 和 publish_test
     add_executable(sentry src/sentry.cpp)
     add_executable(sentry_bp src/sentry_bp.cpp)

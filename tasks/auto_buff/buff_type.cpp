@@ -5,8 +5,8 @@
 #include "tools/logger.hpp"
 namespace auto_buff {
 FanBlade::FanBlade(const std::vector<cv::Point2f> &kpt,
-                   cv::Point2f keypoints_center, FanBlade_type t, int cls)
-    : center(keypoints_center), type(t), cls(cls) {
+                   cv::Point2f keypoints_center, FanBlade_type t, int cls, float confidence)
+    : center(keypoints_center), type(t), cls(cls), confidence(confidence) {
   points.insert(points.end(), kpt.begin(), kpt.end());
 }
 

@@ -1,5 +1,5 @@
-#enemy_color: "red"
-enemy_color: "blue"
+enemy_color: "red"
+#enemy_color: "blue"
 
 #####-----神经网络参数-----#####
 yolo_name: yolov5
@@ -24,7 +24,7 @@ debug_display:
 debug_bus:
   sinks:
     web:
-      enabled: false
+      enabled: true
       port: 8080
       bind: "0.0.0.0"
 
@@ -53,7 +53,6 @@ min_armor_ratio: 1
 max_armor_ratio: 5
 max_side_ratio: 1.5
 max_rectangular_error: 25 # degree
-min_confidence: 0.8
 
 #####-----tracker参数-----#####
 min_detect_count: 5

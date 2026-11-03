@@ -49,8 +49,8 @@ else()
     find_package(spr_msgs QUIET)
 endif()
 
-# 如果找不到 ROS 环境，则跳过 ROS 相关的部分
-if(NOT ament_cmake_FOUND OR NOT rclcpp_FOUND OR NOT std_msgs_FOUND OR NOT rosidl_typesupport_cpp_FOUND OR NOT spr_msgs_FOUND)
+# 如果找不到 ROS2 Humble 环境，则跳过 ROS 相关的部分
+if(NOT SPR_USE_ROS2 OR NOT ament_cmake_FOUND OR NOT rclcpp_FOUND OR NOT std_msgs_FOUND OR NOT rosidl_typesupport_cpp_FOUND OR NOT spr_msgs_FOUND)
     message(WARNING "ROS2 not found, skipping ROS2 specific code.")
 else()
     message(STATUS "ROS2 environment found, compiling ROS2-related code.")

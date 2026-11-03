@@ -21,3 +21,4 @@ neo/
 .clangd
 compile_commands.json
 .claude/
+.superpowers/

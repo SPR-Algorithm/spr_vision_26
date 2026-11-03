@@ -26,4 +26,6 @@ add_library(auto_aim OBJECT
     planner/planner.cpp
 )
 
+target_compile_definitions(auto_aim PUBLIC OPENCV_DISABLE_EIGEN_TENSOR_SUPPORT)
+
 target_link_libraries(auto_aim io openvino::runtime tinympcstatic web_debugger)

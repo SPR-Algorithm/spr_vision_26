@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <deque>
-#include <eigen3/Eigen/Dense> // 必须在opencv2/core/eigen.hpp上面
+#include <Eigen/Dense> // 必须在opencv2/core/eigen.hpp上面
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/opencv.hpp>
 #include <optional>
@@ -24,12 +24,13 @@ public:
   double angle, width, height;
   FanBlade_type type; // 类型
   int cls = -1;       // 类别: 0-未激活 1-小符已激活 2-大符已激活 (-1 未知)
+  float confidence = 0.0F;
 
   explicit FanBlade() = default;
 
   explicit FanBlade(const std::vector<cv::Point2f> &kpt,
                     cv::Point2f keypoints_center, FanBlade_type t,
-                    int cls = -1);
+                    int cls = -1, float confidence = 0.0F);
 
   explicit FanBlade(FanBlade_type t);
 };

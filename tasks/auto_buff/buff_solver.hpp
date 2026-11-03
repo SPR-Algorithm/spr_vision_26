@@ -23,7 +23,7 @@ public:
 
   void set_R_gimbal2world(const Eigen::Quaterniond & q);
 
-  void solve(std::optional<PowerRune> & ps) const;
+  bool solve(std::optional<PowerRune> & ps) const;
 
   // 调试用
   cv::Point2f point_buff2pixel(cv::Point3f x);
@@ -39,28 +39,21 @@ private:
   Eigen::Vector3d t_camera2gimbal_;
   Eigen::Matrix3d R_gimbal2world_;
 
-  cv::Vec3d rvec_, tvec_;
+  mutable cv::Vec3d rvec_, tvec_;
 
-  // std::vector<std::vector<cv::Point3f>> OBJECT_POINTS = {
-  //   {cv::Point3f(0, 160e-3, 858.5e-3), cv::Point3f(0, -160e-3, 858.5e-3),
-  //    cv::Point3f(0, -186e-3, 541.5e-3), cv::Point3f(0, 186e-3, 541.5e-3),
-  //    cv::Point3f(0, 0, 700e-3)},
-  //   {},
-  //   {},
-  //   {},
-  //   {}};  // 单位：米
-
-  // TODO
+  // buff 坐标系 3D 点, 与 detector order_keypoints [上,右,下,左,R标] 角点顺序一致
+  // [0] 上  [1] 右  [2] 下  [3] 左  [4] 扇叶装甲中心  [5] 结构点  [6] R标/buff原点
   const std::vector<cv::Point3f> OBJECT_POINTS = {
-    cv::Point3f(0, 0, 827e-3), cv::Point3f(0, 127e-3, 700e-3),
-    cv::Point3f(0, 0, 573e-3), cv::Point3f(0, -127e-3, 700e-3),
-    cv::Point3f(0, 0, 700e-3), cv::Point3f(0, 0, 220e-3),
-    cv::Point3f(0, 0, 0)};  // 单位：米
+    cv::Point3f(0, 0, 827e-3),       // [0] 上
+    cv::Point3f(0, 127e-3, 700e-3),  // [1] 右
+    cv::Point3f(0, 0, 573e-3),       // [2] 下
+    cv::Point3f(0, -127e-3, 700e-3), // [3] 左
+    cv::Point3f(0, 0, 700e-3),       // [4] 扇叶装甲中心
+    cv::Point3f(0, 0, 220e-3),       // [5]
+    cv::Point3f(0, 0, 0)};           // [6] R 标旋转中心 / buff 原点
 
-  // 函数：生成绕x轴旋转的旋转矩阵
   cv::Matx33f rotation_matrix(double angle) const;
 
-  // 函数：旋转点并填充到 OBJECT_POINTS 中
   void compute_rotated_points(std::vector<std::vector<cv::Point3f>> & object_points);
 };
 }  // namespace auto_buff

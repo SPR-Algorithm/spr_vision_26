@@ -62,7 +62,6 @@ min_armor_ratio: 1
 max_armor_ratio: 5
 max_side_ratio: 1.5
 max_rectangular_error: 25 # degree
-min_confidence: 0.8
 
 #####-----云台串口（哨兵与云台通讯；替代原 CBoard CAN）-----#####
 com_port: "/dev/ttyUSB0"

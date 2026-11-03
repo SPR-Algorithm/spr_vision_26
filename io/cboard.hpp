@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "io/command.hpp"
+#include "io/gimbal/gimbal.hpp"
 #include "io/socketcan.hpp"
 #include "tools/logger.hpp"
 #include "tools/thread_safe_queue.hpp"
@@ -47,6 +48,10 @@ public:
   Eigen::Quaterniond imu_at(std::chrono::steady_clock::time_point timestamp);
 
   void send(Command command) const;
+  void send(const VisionToGimbal & command) const;
+
+  GimbalMode gimbal_mode() const;
+  GimbalState gimbal_state() const;
 
 private:
   struct IMUData

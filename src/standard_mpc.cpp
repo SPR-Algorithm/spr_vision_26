@@ -70,6 +70,7 @@ int main(int argc, char * argv[])
   while (!exiter.exit()) {
     mode = gimbal.mode();
     if (last_mode != mode) {
+      buff_processor.reset();
       tools::logger()->info("Switch to {}", gimbal.str(mode));
       last_mode = mode.load();
     }
@@ -86,9 +87,9 @@ int main(int argc, char * argv[])
       target_queue.push(targets.empty() ? std::nullopt : std::optional<auto_aim::Target>(targets.front()));
     } else if (
       mode.load() == io::GimbalMode::SMALL_BUFF || mode.load() == io::GimbalMode::BIG_BUFF) {
-      const auto observation = buff_detector.detect_observation(img);
+      const auto observations = buff_detector.detect_observations(img);
       const auto output = buff_processor.process(auto_buff::make_buff_input(
-        img, timestamp, q, state, mode.load(), observation));
+        img, timestamp, q, state, mode.load(), observations));
       gimbal.send(output);
     } else {
       gimbal.send(io::VisionToGimbal{});

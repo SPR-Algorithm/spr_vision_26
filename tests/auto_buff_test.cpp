@@ -53,7 +53,7 @@ int main(int argc, char * argv[])
     const auto timestamp = t0 + std::chrono::microseconds(static_cast<int>(t * 1e6));
     const auto output = processor.process(auto_buff::make_buff_input(
       img, timestamp, Eigen::Quaterniond(w, x, y, z), {0.0F, 0.0F, 0.0F, 0.0F, 22.0F, 0},
-      io::GimbalMode::BIG_BUFF, detector.detect_observation(img)));
+      io::GimbalMode::BIG_BUFF, detector.detect_observations(img)));
 
     nlohmann::json data;
     data["mode"] = output.mode;

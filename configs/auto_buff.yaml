@@ -1,5 +1,6 @@
-# Stage 0 runtime parameters for BuffProcessor.
-tracking_timeout_ms: 20
+# Real capture intervals are about 40 ms. Reset after a lost observation window,
+# rather than between normal frames; this matches S5's 0.20 s observation gap.
+tracking_timeout_ms: 200
 
 # Stage 1 observation validation, ROI, contour extraction and quality thresholds.
 observation_refiner:

@@ -5,7 +5,6 @@
 
 #include <array>
 #include <chrono>
-#include <cstdint>
 #include <limits>
 #include <optional>
 #include <vector>
@@ -16,6 +15,18 @@ namespace auto_buff
 {
 constexpr std::size_t BUFF_POINT_COUNT = 5;
 using BuffPoints = std::array<cv::Point2f, BUFF_POINT_COUNT>;
+using FrameTimestamp = std::chrono::steady_clock::time_point;
+
+// Physical blade slots, spaced by 2*pi/5; never use detection order as slot identity.
+// Before reconstruction establishes an association, represent a slot with optional<RuneSlot>.
+enum class RuneSlot
+{
+  ONE = 1,
+  TWO,
+  THREE,
+  FOUR,
+  FIVE
+};
 
 enum class RuneKind
 {
@@ -128,11 +139,38 @@ enum class PoseSource
 struct RunePose
 {
   Eigen::Vector3d position_world_m = Eigen::Vector3d::Zero();
+  // Rune-local to world rotation: local +X is the plane normal, local +Z is phase zero.
   Eigen::Quaterniond orientation_world = Eigen::Quaterniond::Identity();
+  // Successful geometry has unit, perpendicular normal and phase-zero directions.
   Eigen::Vector3d plane_normal_world = Eigen::Vector3d::UnitX();
+  // Positive phase follows the right-hand rule around plane_normal_world.
+  Eigen::Vector3d phase_zero_direction_world = Eigen::Vector3d::UnitZ();
+  double blade_radius_m = 0.7;  // Model default: circle center to armor center, in meters.
   double reprojection_error_px = std::numeric_limits<double>::infinity();
+  // Anchor error before contour refinement; reprojection_error_px remains the final anchor error.
+  std::optional<double> pnp_reprojection_error_px;
+  // Present only when a measured contour improvement was accepted.
+  std::optional<double> contour_error_px;
+  std::size_t contour_sample_count = 0;
+  // The joint anchor solution accepted the caller's previous-pose LM branch, without smoothing.
+  bool used_temporal_prior = false;
   float confidence = 0.0F;
   PoseSource source = PoseSource::UNKNOWN;
+};
+
+// These associations exist only within a successful reconstruction. A default-initialized
+// blade or pose is not evidence that a slot was identified or geometry was reconstructed.
+struct ReconstructedBlade
+{
+  RefinedObservation observation;
+  RuneSlot slot = RuneSlot::ONE;
+  Eigen::Vector3d armor_center_world_m = Eigen::Vector3d::Zero();
+};
+
+struct RuneReconstruction
+{
+  RunePose pose;
+  std::vector<ReconstructedBlade> blades;
 };
 
 enum class RotationDirection
@@ -142,22 +180,48 @@ enum class RotationDirection
   COUNTER_CLOCKWISE = 1
 };
 
+enum class MotionModel
+{
+  UNAVAILABLE,
+  CONSTANT_VELOCITY,
+  HARMONIC_PHASE
+};
+
+struct HarmonicPhaseParameters
+{
+  // theta(t) = A*cos(omega*t) + B*sin(omega*t) + b*t + C.
+  // t is seconds since MotionState::model_epoch; theta uses the pose's phase convention.
+  double cos_amplitude_rad = 0.0;        // A
+  double sin_amplitude_rad = 0.0;        // B
+  double linear_rate_rad_s = 0.0;        // b
+  double phase_offset_rad = 0.0;         // C
+  double angular_frequency_rad_s = 0.0;  // omega
+};
+
 struct MotionState
 {
+  // Instantaneous phase and velocity at reference_timestamp, independent of fit epoch.
   double continuous_phase_rad = 0.0;
   double angular_velocity_rad_s = 0.0;
   RotationDirection direction = RotationDirection::UNKNOWN;
-  std::chrono::steady_clock::time_point reference_timestamp{};
+  FrameTimestamp reference_timestamp{};
+  MotionModel model = MotionModel::UNAVAILABLE;
+  // CONSTANT_VELOCITY uses the instantaneous state above; HARMONIC_PHASE uses this epoch
+  // and all five fitted coefficients, rather than extrapolating instantaneous velocity.
+  FrameTimestamp model_epoch{};
+  HarmonicPhaseParameters harmonic_phase;
   float confidence = 0.0F;
   bool converged = false;
 };
 
 struct RuneTarget
 {
-  std::uint64_t id = 0;
   RefinedObservation observation;
-  std::optional<RunePose> pose;
-  std::optional<MotionState> motion;
+  RunePose pose;
+  MotionState motion;
+  RuneSlot slot = RuneSlot::ONE;
+  // A successful optional<RuneTarget> contains valid observation/geometry/slot and a
+  // converged motion model. Stage failures return nullopt, never a partial target.
   TrackingQuality quality = TrackingQuality::INVALID;
 };
 

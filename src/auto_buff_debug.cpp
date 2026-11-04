@@ -61,9 +61,9 @@ int main(int argc, char * argv[])
     text >> t >> w >> x >> y >> z;
     const auto timestamp = t0 + std::chrono::microseconds(static_cast<int>(t * 1e6));
     const Eigen::Quaterniond q(w, x, y, z);
-    const auto observation = detector.detect_observation(img);
+    const auto observations = detector.detect_observations(img);
     const auto output = processor.process(auto_buff::make_buff_input(
-      img, timestamp, q, gimbal.state(), gimbal.mode(), observation));
+      img, timestamp, q, gimbal.state(), gimbal.mode(), observations));
     gimbal.send(output);
 
     nlohmann::json data;

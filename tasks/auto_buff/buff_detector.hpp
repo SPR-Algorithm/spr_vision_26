@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "buff_type.hpp"
+#include "rune_types.hpp"
 #include "yolo11_buff.hpp"
 namespace auto_buff {
 // 职责(对齐 RP-26 NNDetector): 图像 -> 标准五点观测(BuffObservation)。

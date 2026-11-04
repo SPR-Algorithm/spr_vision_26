@@ -38,9 +38,9 @@ int main(int argc, char * argv[])
     std::chrono::steady_clock::time_point timestamp;
     camera.read(img, timestamp);
     const auto q = gimbal.q(timestamp);
-    const auto observation = detector.detect_observation(img);
+    const auto observations = detector.detect_observations(img);
     const auto output = processor.process(auto_buff::make_buff_input(
-      img, timestamp, q, gimbal.state(), gimbal.mode(), observation));
+      img, timestamp, q, gimbal.state(), gimbal.mode(), observations));
     gimbal.send(output);
 
     nlohmann::json data;

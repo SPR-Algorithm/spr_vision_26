@@ -131,6 +131,7 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/tests/buff_observation_test.cpp")
   add_executable(buff_observation_test tests/buff_observation_test.cpp)
 endif()
 add_executable(buff_processor_protocol_test tests/buff_processor_protocol_test.cpp)
+add_executable(buff_reconstruction_test tests/buff_reconstruction_test.cpp)
 add_executable(buff_detector_adapter_test tests/buff_detector_adapter_test.cpp)
 add_executable(buff_detector_test tests/buff_detector_test.cpp)
 add_executable(buff_refiner_video_test tests/buff_refiner_video_test.cpp)
@@ -160,6 +161,7 @@ if(TARGET buff_observation_test)
   target_link_libraries(buff_observation_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
 endif()
 target_link_libraries(buff_processor_protocol_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+target_link_libraries(buff_reconstruction_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
 target_link_libraries(buff_detector_adapter_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
 target_link_libraries(buff_detector_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
 target_link_libraries(buff_refiner_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
@@ -182,6 +184,11 @@ target_link_libraries(dm_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io)
 target_link_libraries(minimum_vision_system ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
 
 if(BUILD_TESTING)
+  add_test(NAME buff_reconstruction_test COMMAND buff_reconstruction_test)
+  set_tests_properties(buff_reconstruction_test PROPERTIES
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    LABELS "unit;headless;auto_buff"
+    TIMEOUT 10)
   add_test(NAME web_debugger_stress_test COMMAND web_debugger_stress_test)
   set_tests_properties(web_debugger_stress_test PROPERTIES
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}

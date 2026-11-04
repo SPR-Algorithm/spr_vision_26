@@ -15,7 +15,7 @@ use_traditional: false
 debug_display:
   window:
     enabled: true
-    auto_detect: false
+    auto_detect: true
   web:
     enabled: false
     port: 8080
@@ -24,16 +24,15 @@ debug_display:
 debug_bus:
   sinks:
     web:
-      enabled: true
+      enabled: false
       port: 8080
       bind: "0.0.0.0"
       max_fps: 30        # 推流帧率上限，网页上可临时修改
       jpeg_quality: 60   # 10 ~ 95
       max_width: 640     # 图像宽度超过时等比缩小后再编码
 
-
 #####-----ROI-----#####
-roi: 
+roi:
   x: 420
   y: 50
   width: 600
@@ -94,15 +93,37 @@ vid_pid: "2bdf:0001"
 R_gimbal2imubody: [0, 1, 0, -1, 0, 0, 0, 0, -1]
 
 # # 重投影误差: 0.214px
-camera_matrix: [2348.28807, 0.00000, 715.8871,  0.000000, 2343.20121, 549.08769, 0.00000, 0.00000, 1.00000]
+camera_matrix:
+  [
+    2348.28807,
+    0.00000,
+    715.8871,
+    0.000000,
+    2343.20121,
+    549.08769,
+    0.00000,
+    0.00000,
+    1.00000,
+  ]
 distort_coeffs: [-0.113753, 0.476220, -0.000367, 0.000390, 0.000000]
 
 # 相机同理想情况的偏角: yaw0.50 pitch0.89 roll-4.09 degree
 # 标定板到世界坐标系原点的水平距离: 1.84 m
 # 标定板同竖直摆放时的偏角: yaw21.15 pitch5.80 roll-95.22 degree
-R_camera2gimbal: [-0.0097593608923142363, 0.014906909346876499, 0.9998412568646573, -0.99740747610409053, -0.07143632359391644, -0.0086705411049835795, 0.0712957325976913, -0.99733376345389468, 0.015565435690953719]
-t_camera2gimbal: [0.02663681156986614, -0.00018454730148609257, 0.10511518672308437]
-
+R_camera2gimbal:
+  [
+    -0.0097593608923142363,
+    0.014906909346876499,
+    0.9998412568646573,
+    -0.99740747610409053,
+    -0.07143632359391644,
+    -0.0086705411049835795,
+    0.0712957325976913,
+    -0.99733376345389468,
+    0.015565435690953719,
+  ]
+t_camera2gimbal:
+  [0.02663681156986614, -0.00018454730148609257, 0.10511518672308437]
 
 #####-----cboard参数-----#####
 quaternion_canid: 0x100
@@ -111,12 +132,11 @@ send_canid: 0xff
 can_interface: "can0"
 
 #####-----gimbal参数-----#####
-com_port: "/dev/gimbal"
+com_port: "/dev/ttyUSB0"
 yaw_kp: 0
 yaw_kd: 0
 pitch_kp: 0
 pitch_kd: 0
-
 
 #####-----planner-----#####
 fire_thresh: 0.003
@@ -126,18 +146,15 @@ Q_yaw: [9e6, 0]
 R_yaw: [1]
 
 max_pitch_acc: 100
-Q_pitch: [9e6,0]
+Q_pitch: [9e6, 0]
 R_pitch: [1]
 
 #####-----buff_detector参数-----#####
 model: "assets/buffer-0624.xml"
 
 #####-----buff_aimer参数-----#####
-fire_gap_time: 0.520   # s
-predict_time: 0.100     # s
-
-
-
+fire_gap_time: 0.520 # s
+predict_time: 0.100 # s
 
 #####-----滤波器参数集（基于角速度自动切换）-----#####
 # 角速度阈值从小到大排列，当前 |w| < threshold 时使用该参数集
@@ -151,14 +168,14 @@ filter_param_sets:
     R_yaw: 0.004
     R_pitch: 0.004
     R_distance: 0.09
-    angular_velocity_threshold: 2.0   # |w| < 2 rad/s 时使用此参数集（慢速/旋转目标）
+    angular_velocity_threshold: 2.0 # |w| < 2 rad/s 时使用此参数集（慢速/旋转目标）
   - name: "normal"
     v1: 100.0
     v2: 400.0
     R_yaw: 0.004
     R_pitch: 0.004
     R_distance: 0.09
-    angular_velocity_threshold: 8.0   # 2 <= |w| < 8 时使用（常规目标）
+    angular_velocity_threshold: 8.0 # 2 <= |w| < 8 时使用（常规目标）
   - name: "fast"
     v1: 500.0
     v2: 1000.0

@@ -22,6 +22,7 @@ neo/
 compile_commands.json
 .claude/
 .superpowers/
+docs/
 assets/buff_engines/
 __pycache__/
 *.py[cod]

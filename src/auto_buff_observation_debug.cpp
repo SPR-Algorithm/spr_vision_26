@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -29,6 +30,7 @@
 #include "io/camera.hpp"
 #include "io/gimbal/gimbal.hpp"
 #include "tasks/auto_buff/buff_detector.hpp"
+#include "tasks/auto_buff/yolo11_buff_types.hpp"
 #include "tasks/auto_buff/buff_processor.hpp"
 #include "tasks/auto_buff/observation_refiner.hpp"
 #include "tasks/auto_buff/phase_motion_estimator.hpp"
@@ -48,8 +50,9 @@ struct Options
   std::string config = "configs/standard4.yaml";
   std::string buff_config = "configs/auto_buff.yaml";
   std::string mode = "serial";
-  std::string video, imu, device, log;
-  std::size_t frames = 0, start_index = 0;
+  std::string video, imu, device, log, backend, model, engine;
+  std::size_t frames = 0, start_index = 0, warmup = 0;
+  std::optional<int> cuda_device;
   bool headless = false, record = false, help = false, motion = false, pose_prior = true;
   bool check_processor = false;
   std::optional<bool> window;
@@ -71,7 +74,12 @@ void print_help()
     "  --window=true|false Override local window setting\n"
     "  --record            Record clean video and synchronized wxyz IMU\n"
     "  --log=PATH          JSONL output (default records/buff_observation_*.jsonl)\n"
-    "  --device=CPU        Override detector device without modifying config\n"
+    "  --backend=openvino|tensorrt  Override only Buff inference backend\n"
+    "  --model=PATH        Override the OpenVINO model\n"
+    "  --engine=PATH       Override engine and select TensorRT\n"
+    "  --cuda-device=N     TensorRT CUDA device index (nonnegative integer)\n"
+    "  --device=CPU        OpenVINO device override; incompatible with TensorRT\n"
+    "  --warmup=N          Repeat detection on the first real frame (default 0)\n"
     "  --video=PATH        Offline video; requires --mode=small or big\n"
     "  --imu=PATH          One 'seconds w x y z' row per offline video frame\n"
     "                      Without --imu, identity IMU is explicitly marked\n"
@@ -105,7 +113,9 @@ Options parse_options(int argc, char ** argv)
     }
     const bool known = key == "--config" || key == "--buff-config" || key == "--mode" ||
       key == "--video" || key == "--imu" || key == "--device" || key == "--log" ||
-      key == "--frames" || key == "--start-index" || key == "--window";
+      key == "--frames" || key == "--start-index" || key == "--window" ||
+      key == "--backend" || key == "--model" || key == "--engine" ||
+      key == "--cuda-device" || key == "--warmup";
     if (!known) throw std::invalid_argument("Unknown argument: " + argument);
     const std::string value = equal != std::string::npos ? argument.substr(equal + 1) :
       (++i < argc ? argv[i] : "");
@@ -116,6 +126,9 @@ Options parse_options(int argc, char ** argv)
     else if (key == "--video") options.video = value;
     else if (key == "--imu") options.imu = value;
     else if (key == "--device") options.device = value;
+    else if (key == "--backend") options.backend = value;
+    else if (key == "--model") options.model = value;
+    else if (key == "--engine") options.engine = value;
     else if (key == "--log") options.log = value;
     else if (key == "--window") options.window = parse_bool(value);
     else {
@@ -124,6 +137,13 @@ Options parse_options(int argc, char ** argv)
       }
       const auto count = std::stoull(value);
       if (key == "--start-index") options.start_index = count;
+      else if (key == "--warmup") options.warmup = count;
+      else if (key == "--cuda-device") {
+        if (count > static_cast<unsigned long long>(std::numeric_limits<int>::max())) {
+          throw std::invalid_argument("--cuda-device exceeds the supported integer range");
+        }
+        options.cuda_device = static_cast<int>(count);
+      }
       else {
         options.frames = count;
         if (count == 0) throw std::invalid_argument("--frames must be positive");
@@ -131,6 +151,13 @@ Options parse_options(int argc, char ** argv)
     }
   }
   if (options.help) return options;
+  if (!options.backend.empty() && options.backend != "openvino" && options.backend != "tensorrt") {
+    throw std::invalid_argument("--backend must be openvino or tensorrt");
+  }
+  if (!options.engine.empty() && options.backend == "openvino") {
+    throw std::invalid_argument("--engine cannot be combined with --backend=openvino");
+  }
+  if (!options.engine.empty()) options.backend = "tensorrt";
   if (options.mode != "serial" && options.mode != "small" && options.mode != "big") {
     throw std::invalid_argument("--mode must be serial, small or big");
   }
@@ -146,7 +173,8 @@ Options parse_options(int argc, char ** argv)
   if (options.video.empty() && options.start_index != 0) {
     throw std::invalid_argument("--start-index requires --video");
   }
-  for (const auto & path : {options.config, options.buff_config, options.video, options.imu}) {
+  for (const auto & path : {options.config, options.buff_config, options.video, options.imu,
+                            options.model, options.engine}) {
     if (!path.empty() && !std::filesystem::is_regular_file(path)) {
       throw std::invalid_argument("Input file does not exist: " + path);
     }
@@ -154,15 +182,35 @@ Options parse_options(int argc, char ** argv)
   return options;
 }
 
-// Detector device overrides live in a temporary file; the user's YAML is never rewritten.
+// Buff-only overrides live in a temporary file; camera/serial and auto_aim settings stay intact.
 class DetectorConfig
 {
 public:
   DetectorConfig(const Options & options, const YAML::Node & config) : path_(options.config)
   {
-    if (options.device.empty()) return;
     auto copy = YAML::Clone(config);
-    copy["device"] = options.device;
+    const auto inference = copy["buff_inference"];
+    const std::string backend = !options.backend.empty() ? options.backend :
+      (inference && inference["backend"] ? inference["backend"].as<std::string>() : "openvino");
+    if (backend != "openvino" && backend != "tensorrt") {
+      throw std::invalid_argument("buff_inference.backend must be openvino or tensorrt");
+    }
+    if (backend == "tensorrt" && !options.device.empty()) {
+      throw std::invalid_argument("--device applies only to OpenVINO; use --cuda-device for TensorRT");
+    }
+    if (backend == "tensorrt" && !options.model.empty()) {
+      throw std::invalid_argument("--model applies only to OpenVINO; use --engine for TensorRT");
+    }
+    if (backend != "tensorrt" && options.cuda_device) {
+      throw std::invalid_argument("--cuda-device requires the TensorRT backend");
+    }
+    if (options.device.empty() && options.backend.empty() && options.model.empty() &&
+        options.engine.empty() && !options.cuda_device) return;
+    copy["buff_inference"]["backend"] = backend;
+    if (!options.device.empty()) copy["buff_inference"]["device"] = options.device;
+    if (!options.model.empty()) copy["buff_inference"]["model"] = options.model;
+    if (!options.engine.empty()) copy["buff_inference"]["engine"] = options.engine;
+    if (options.cuda_device) copy["buff_inference"]["cuda_device"] = *options.cuda_device;
     auto pattern = (std::filesystem::temp_directory_path() / "buff-observation-XXXXXX").string();
     std::vector<char> name(pattern.begin(), pattern.end());
     name.push_back('\0');
@@ -188,6 +236,24 @@ private:
   std::string path_;
   bool temporary_ = false;
 };
+
+Json inference_json(const auto_buff::BuffInferenceDiagnostics & diagnostics)
+{
+  const auto & info = diagnostics.info;
+  const auto & timing = diagnostics.timings;
+  const auto optional_time = [](const std::optional<double> & value) {
+    return value ? Json(*value) : Json(nullptr);
+  };
+  return {{"backend", info.backend}, {"model_path", info.model_path}, {"device", info.device},
+    {"precision", info.precision}, {"model_sha256", info.model_sha256},
+    {"input_shape", info.input_shape}, {"output_shape", info.output_shape},
+    {"timings", {{"upload_ms", optional_time(timing.upload_ms)},
+      {"preprocess_ms", optional_time(timing.preprocess_ms)},
+      {"inference_ms", optional_time(timing.inference_ms)},
+      {"download_ms", optional_time(timing.download_ms)},
+      {"postprocess_ms", timing.postprocess_ms}, {"draw_ms", timing.draw_ms},
+      {"total_ms", timing.total_ms}}}};
+}
 
 // A local terminal can stop a web-only/headless run without requiring a HighGUI window.
 class TerminalQuit
@@ -573,7 +639,8 @@ int run(const Options & options)
   const std::string camera_snapshot_path = log_path + ".camera.yaml";
   const std::string buff_snapshot_path = log_path + ".buff.yaml";
   for (const auto & snapshot : std::vector<std::pair<std::string, YAML::Node>>{
-         {camera_snapshot_path, config}, {buff_snapshot_path, YAML::LoadFile(options.buff_config)}}) {
+         {camera_snapshot_path, YAML::LoadFile(detector_config.path())},
+         {buff_snapshot_path, YAML::LoadFile(options.buff_config)}}) {
     std::ofstream output(snapshot.first);
     output << snapshot.second;
     output.close();
@@ -673,6 +740,14 @@ int run(const Options & options)
       q = gimbal->q(timestamp);
       serial_mode = gimbal->mode();
       gimbal_state = gimbal->state();
+    }
+    if (frame_count == 0 && options.warmup != 0) {
+      tools::logger()->info("Warming up Buff detector on the first real frame: {} iterations", options.warmup);
+      for (std::size_t iteration = 0; iteration < options.warmup; ++iteration) {
+        if (exiter.exit() || terminal.pressed()) return 0;
+        auto warmup_image = raw.clone();
+        detector.detect_observations(warmup_image);
+      }
     }
     const auto begin = Clock::now();
     const std::optional<double> capture_interval_ms = previous_timestamp ?
@@ -800,6 +875,8 @@ int run(const Options & options)
       {"recording_video", recorder ? Json(recorder->video_path()) : Json(nullptr)},
       {"recording_imu", recorder ? Json(recorder->text_path()) : Json(nullptr)},
       {"device_override", options.device.empty() ? Json(nullptr) : Json(options.device)},
+      {"warmup_iterations", options.warmup},
+      {"inference", inference_json(detector.inference_diagnostics())},
       {"mode", {{"selection", options.mode}, {"serial", offline ? Json(nullptr) : Json(mode_name(serial_mode))},
         {"effective", mode_name(mode)}}},
       {"capture_interval_ms", capture_interval_ms ? Json(*capture_interval_ms) : Json(nullptr)},

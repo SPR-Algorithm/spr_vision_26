@@ -7,7 +7,6 @@ find_package(OpenSSL REQUIRED COMPONENTS Crypto)
 
 add_library(auto_buff OBJECT 
     buff_processor.cpp
-    buff_type.cpp
     observation_refiner.cpp
     buff_detector.cpp
     rune_reconstructor.cpp

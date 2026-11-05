@@ -79,7 +79,3 @@ baud_rate: 115200
 
 #####-----buff_detector参数-----#####
 model: "assets/buffer-0624.xml"
-
-#####-----buff_aimer参数-----#####
-fire_gap_time: 0.520   # s
-predict_time: 0.100     # s

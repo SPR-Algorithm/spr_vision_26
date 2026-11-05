@@ -152,10 +152,6 @@ R_pitch: [1]
 #####-----buff_detector参数-----#####
 model: "assets/buffer-0624.xml"
 
-#####-----buff_aimer参数-----#####
-fire_gap_time: 0.520 # s
-predict_time: 0.100 # s
-
 #####-----滤波器参数集（基于角速度自动切换）-----#####
 # 角速度阈值从小到大排列，当前 |w| < threshold 时使用该参数集
 # v1: 位置过程噪声（越大跟踪越快但越抖）

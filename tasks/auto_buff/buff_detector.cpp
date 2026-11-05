@@ -1,6 +1,5 @@
 #include "buff_detector.hpp"
 
-#include <algorithm>
 #include <array>
 #include <memory>
 #include <stdexcept>
@@ -98,27 +97,6 @@ Buff_Detector::to_observation(const YOLO11_BUFF::Object &detection) {
   observation.points = ordered.value();
   observation.activation = activation_from_class(detection.label);
   observation.confidence = detection.prob;
-  return observation;
-}
-
-std::optional<BuffObservation>
-Buff_Detector::detect_observation(cv::Mat &bgr_img) {
-  // 单符片便捷接口: 取全部检出符片中置信度最高的一片(NMS 结果按 quality 降序)。
-  const auto observations = detect_observations(bgr_img);
-  if (observations.empty())
-    return std::nullopt;
-  return observations.front();
-}
-
-std::optional<BuffObservation>
-Buff_Detector::to_observation(const FanBlade &blade) {
-  if (blade.points.size() != 5)
-    return std::nullopt;
-  BuffObservation observation;
-  std::copy_n(blade.points.begin(), observation.points.size(),
-              observation.points.begin());
-  observation.activation = activation_from_class(blade.cls);
-  observation.confidence = blade.confidence;
   return observation;
 }
 

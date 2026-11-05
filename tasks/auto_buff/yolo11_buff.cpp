@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <filesystem>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <stdexcept>
 #include <string>
@@ -275,15 +273,6 @@ YOLO11_BUFF::get_multicandidateboxes(cv::Mat &image) {
   return objects;
 }
 
-std::vector<YOLO11_BUFF::Object>
-YOLO11_BUFF::get_onecandidatebox(cv::Mat &image) {
-  auto objects = get_multicandidateboxes(image);
-  // NMS 后已按置信度降序排列, 取第一个即为最高置信度目标
-  if (objects.empty())
-    return std::vector<Object>();
-  return std::vector<Object>{objects.front()};
-}
-
 void YOLO11_BUFF::draw(cv::Mat &image, const std::vector<Object> &objects) {
   for (const auto &obj : objects) {
     // 绘制关键点
@@ -315,15 +304,6 @@ void YOLO11_BUFF::draw(cv::Mat &image, const std::vector<Object> &objects) {
     cv::putText(image, label, cv::Point(obj.center.x, obj.center.y - 2),
                 cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
   }
-}
-
-void YOLO11_BUFF::save(const std::string &programName, const cv::Mat &image) {
-  const std::filesystem::path saveDir = "../result/";
-  if (!std::filesystem::exists(saveDir)) {
-    std::filesystem::create_directories(saveDir);
-  }
-  const std::filesystem::path savePath = saveDir / (programName + ".jpg");
-  cv::imwrite(savePath.string(), image);
 }
 
 } // namespace auto_buff

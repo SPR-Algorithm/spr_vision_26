@@ -29,16 +29,6 @@ public:
   // 使用NMS，用来获取多个目标 (返回图中所有符片, 按 quality 降序)
   std::vector<Object> get_multicandidateboxes(cv::Mat &image);
 
-  // 寻找置信度最高的目标
-  std::vector<Object> get_onecandidatebox(cv::Mat &image);
-
-  // 只读访问生效的后处理阈值(便于测试/日志核对)
-  float conf_threshold() const { return conf_threshold_; }
-  float kpt_conf_threshold() const { return kpt_conf_threshold_; }
-  float nms_distance() const { return nms_dist_threshold_; }
-  int min_valid_keypoints() const { return min_valid_kpts_; }
-  bool output_is_nca() const { return output_is_nca_; }
-
   const BuffInferenceDiagnostics & inference_diagnostics() const { return diagnostics_; }
 
 private:
@@ -75,7 +65,6 @@ private:
   // 可视化绘制
   void draw(cv::Mat &image, const std::vector<Object> &objects);
 
-  void save(const std::string &programName, const cv::Mat &image);
 };
 } // namespace auto_buff
 #endif

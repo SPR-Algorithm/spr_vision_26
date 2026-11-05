@@ -185,7 +185,7 @@ cv::Mat
 
 ## 4. 与遗留代码的关系
 
-`buff_solver`、`buff_target`、`buff_aimer` 已移出当前 auto_buff 构建，源码暂留供后续算法迁移参考。`buff_type` 仍为检测器的遗留 `FanBlade` 适配器提供类型实现，其 PowerRune 跟踪链路不再参与主流程。主程序仅经 `Buff_Detector → BuffProcessor` 执行，本设计的替换关系：
+`buff_solver`、`buff_target`、`buff_aimer`、`buff_predict` 和 `buff_type` 的旧接口与实现已删除，检测器也已移除遗留 `FanBlade` 适配器。旧 `buff_target` 专用的 `tools/ransac_sine_fitter` 及各机器人配置中的旧 `buff_aimer` 参数一并清理。主程序经 `Buff_Detector → BuffProcessor` 执行，直接传递标准五点观测；以下表格保留历史替换关系：
 
 | 环节 | 遗留实现 | 本设计 |
 |---|---|---|
@@ -235,12 +235,12 @@ cv::Mat
 ```bash
 cmake --build build --target \
   auto_buff auto_buff_debug auto_buff_debug_mpc auto_buff_test \
-  buff_processor_protocol_test buff_detector_adapter_test \
+  buff_processor_protocol_test \
   buff_detector_test buff_refiner_video_test \
   standard_mpc uav standard auto_aim_test gimbal_test -j4
 ```
 
-结果：上述 13 个目标均编译通过，命令退出码为 0。当前环境为 ROS2 Jazzy，项目按现有逻辑跳过 Humble 专用目标。该阶段未执行测试程序、视频回放、实车或仿真运行；编译通过仅确认接口、依赖和链接兼容，不代表后续算法已完成或精度已验收。
+结果：上述保留的 12 个目标在该阶段均编译通过，命令退出码为 0；原记录中的第 13 个目标 `buff_detector_adapter_test` 随旧接口一并删除。当前环境为 ROS2 Jazzy，项目按现有逻辑跳过 Humble 专用目标。该阶段未执行测试程序、视频回放、实车或仿真运行；编译通过仅确认接口、依赖和链接兼容，不代表后续算法已完成或精度已验收。
 
 ---
 
@@ -248,24 +248,28 @@ cmake --build build --target \
 
 `auto_buff_observation_debug` 直接运行 S2 → S3 → S4。串口只接收 IMU 和模式，不调用 `gimbal.send()`，不经过运动预测、弹道或开火决策。检测器会在输入上绘制标注，因此工具只把图像副本交给检测器，轮廓提取和原始录制均使用干净原图。
 
-从仓库根目录运行，带值参数使用 `=`：
+从仓库根目录运行，带值参数使用 `=`。以下命令显式使用 OpenVINO/CPU，可用于默认关闭 TensorRT 的构建；当前 `standard4.yaml` 的实车配置显式选择 TensorRT FP32，直接沿用该配置运行时需按第 12 节启用 TensorRT 并生成 engine：
 
 ```bash
 cmake -S . -B build
 cmake --build build --target auto_buff_observation_debug -j4
 
 # 实车：默认跟随电控大小符档位；浏览器打开 http://127.0.0.1:8080
-./build/auto_buff_observation_debug --config=configs/standard4.yaml --record
+./build/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --backend=openvino --device=CPU --record
 
 # 有界采集，不开启网页或本地窗口
-./build/auto_buff_observation_debug --config=configs/standard4.yaml --headless --frames=100
+./build/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --backend=openvino --device=CPU --headless --frames=100
 
 # 电控暂未切打符档时，可明确指定本次观测的大小符模式；姿态仍来自串口
-./build/auto_buff_observation_debug --config=configs/standard4.yaml --mode=small
+./build/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --backend=openvino --device=CPU --mode=small
 
 # 回放实际采集的录像与原始时间/姿态，不连接相机或串口
 ./build/auto_buff_observation_debug --video=records/2026-11-04_19-53-49.avi \
-  --imu=records/2026-11-04_19-53-49.txt --mode=big --device=CPU --motion --headless --frames=300
+  --imu=records/2026-11-04_19-53-49.txt --mode=big \
+  --backend=openvino --device=CPU --motion --headless --frames=300
 ```
 
 本机远程访问时，将 `127.0.0.1` 换为视觉主机 IP。默认读取配置中的网页端口和推流参数；需要本地窗口时使用 `--window=true`。`--record` 使用现有 Recorder 保存 `records/*.avi` 和同名 `*.txt`（每行 `t qw qx qy qz`）。每次运行另存独立 JSONL 诊断日志，也可用 `--log=路径` 指定位置。录像回放加 `--imu=records/同名.txt` 即可使用原始时间和姿态；不提供时明确显示单位姿态，该结果只能检查图像几何，不能用于实车世界坐标稳定性验收。
@@ -430,4 +434,128 @@ flowchart TD
 
 接收和发送协议的 mode 含义不同：电控→视觉为 0 空闲、1 装甲自瞄、2 小符、3 大符；视觉→电控为 0 不控制、1 控制不开火、2 控制且开火。
 
-独立工具 `auto_buff_observation_debug` 默认直接执行 S2/S3/S4，`--motion` 加入 S5，`--check-processor` 另外检查 S1 生产链路输出；始终不发送串口。其检测图像是原图副本，S3 使用干净原图。生产入口当前的标注污染问题仍须处理。旧 `buff_target`、`buff_solver`、`buff_aimer` 未进入当前 auto_buff 构建，当前运动估计使用 `PhaseMotionEstimator`，不经过旧 EKF/RANSAC 链路。
+独立工具 `auto_buff_observation_debug` 默认直接执行 S2/S3/S4，`--motion` 加入 S5，`--check-processor` 另外检查 S1 生产链路输出；始终不发送串口。其检测图像是原图副本，S3 使用干净原图。生产入口当前的标注污染问题仍须处理。旧 `buff_target`、`buff_solver`、`buff_aimer`、`buff_predict` 和 `buff_type` 已删除，当前运动估计使用 `PhaseMotionEstimator`。
+
+---
+
+## 12. 可选 TensorRT 检测后端与真实回放对比
+
+`Yolo11BuffOpenVINO` 与 `Yolo11BuffTensorRT` 是并列的检测后端，分别放在 `yolo11_buff_openvino.hpp/.cpp` 和 `yolo11_buff_tensorrt.hpp/.cpp`。`Buff_Detector` 按配置选择其中一个；每次检测只执行所选后端，不同时运行两套模型。`YOLO11_BUFF` 保留公共输出对象、解码、五点置信度筛选、中心距离 NMS 和绘制逻辑；模型关键点顺序及对上层的 `[上,右,下,左,R]` 观测接口保持一致。TensorRT 的 CUDA 预处理位于 `yolo11_buff_cuda_preprocess.cu`，执行上传、letterbox、BGR→RGB、除以 255 和 NCHW 排列，再进行推理及输出下载；S3～S6 仍在原链路执行。
+
+未配置 `buff_inference.backend` 时，检测器默认选择 OpenVINO；选择 OpenVINO 时，`buff_inference.model/device` 缺省会沿用现有顶层 `model/device`。当前 `standard4.yaml` 的实车配置显式选择 TensorRT FP32，内容如下；独立配置可覆盖能量机关后端，不改变共享配置中装甲自瞄的设备设置：
+
+```yaml
+buff_inference:
+  backend: tensorrt  # 显式选择；不根据 device: GPU 自动切换后端
+  engine: build/buff_engines/buffer.fp32.engine
+  cuda_device: 0
+```
+
+TensorRT 首先使用 `assets/buffer.onnx`：输入为 FP32 `[1,3,480,640]`，输出为 FP32 `[1,18,6300]`，对应 3 类与 5×3 关键点。它与当前 `buffer-0624.xml` 的形状和内嵌训练 metadata 一致；XML 压缩权重和 ONNX 原始权重的微小数值差异仍通过回放核对。其他现有 buff 模型的 15/17/22 通道输出不能直接套用当前解码器。
+
+TensorRT 支持由 CMake 选项 `SPR_AUTO_BUFF_TENSORRT` 控制，默认 OFF。当前 `standard4.yaml` 需要 ON 构建及本机生成的 `build/buff_engines/buffer.fp32.engine`；OFF 构建收到该配置时会报错，不会自动回退。观察工具可通过 `--backend=openvino --device=CPU` 临时切换，无需改写车辆配置。启用需要 CUDA Toolkit、TensorRT 10.13+ 的 10.x SDK 头文件及真实 runtime 库，不使用 stub。`TensorRT_ROOT` 可通过 CMake cache 或同名环境变量提供。CMake 至少为 3.18；未指定 CUDA 架构时使用 `native`，此时需要 CMake 3.24+；也可显式设置 `-DCMAKE_CUDA_ARCHITECTURES=<SM>`。OFF 构建不查找 CUDA/TensorRT，其他任务仍保留既有 OpenVINO 依赖。
+
+本轮在 2026-11-04～05 跨日完成，日志文件名沿用 `20261104`。实际环境为 Intel Core i9-14900HX、NVIDIA GeForce RTX 4070 Laptop GPU（SM 8.9）、驱动 580.178.04、CUDA Toolkit/runtime 12.8、TensorRT 10.13.3.9；编译工具为 GCC 13.3、CMake 3.28.3，图像库为 OpenCV 4.6.0。TensorRT SDK 位于 `/home/firfly/TensorRT/TensorRT-10.13.3.9`，OpenSSL Crypto 3.0.13 已安装并用于模型哈希。TensorRT 开关 OFF 和 ON 的构建均已验证；本轮 CPU 对照通过命令行明确指定 OpenVINO，不依赖当前车辆 YAML 的后端选择。
+
+```bash
+# 离线构建 engine，自动保存同名 .json 元数据；不连接相机/串口
+python3 tools/build_buff_engine.py --precision=fp32 \
+  --output=build/buff_engines/buffer.fp32.engine
+
+# TensorRT_ROOT 指向已安装的 SDK，包含 include/ 和 lib/ 或 lib64/
+cmake -S . -B build/tensorrt -DSPR_AUTO_BUFF_TENSORRT=ON \
+  -DTensorRT_ROOT="$TensorRT_ROOT"
+cmake --build build/tensorrt --target auto_buff_observation_debug buff_cuda_preprocess_test -j4
+
+# CUDA 预处理与 CPU 参考比较，只读取真实录像，不注册为默认硬件 CTest
+./build/tensorrt/buff_cuda_preprocess_test --video=records/2026-11-04_20-40-43.avi --frames=60
+```
+
+engine 构建器支持 `--dry-run` 预览命令，`--trtexec=PATH` 指定工具；不指定时从 `TensorRT_ROOT/bin/trtexec` 等位置查找。FP16 需要显式指定 `--precision=fp16` 并使用另一个输出路径；默认 FP32 关闭 TF32，FP16 仍保留 FP32 输入/输出。engine 与元数据随运行环境生成，不作为跨显卡、跨 TensorRT 版本通用的模型文件。
+
+调试入口新增 `--backend`、`--model`、`--engine`、`--cuda-device` 和 `--warmup`。`--engine` 隐含选择 TensorRT，与显式 `--backend=openvino` 冲突时直接报错；`--device`、`--model` 只用于 OpenVINO，与 TensorRT 组合时直接报错并提示对应参数。参数覆盖写入临时配置，原始相机/串口 YAML 不被修改；`.camera.yaml` 快照保存实际生效的检测配置。`--warmup` 默认 0，指定 20 时仅在第一张真实图像的副本上重复检测 20 次，不推进 S3/S4/S5 历史，之后从同一首帧正常评分。
+
+以下三次回放使用同一录像的 689 帧及对应 IMU 时间，先区分 XML/ONNX 差异，再检查 TensorRT：
+
+```bash
+./build/tensorrt/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --video=records/2026-11-04_20-40-43.avi --imu=records/2026-11-04_20-40-43.txt \
+  --mode=big --motion --headless --frames=689 --warmup=20 \
+  --backend=openvino --device=CPU --log=records/buff_ab_xml_20261104.jsonl
+
+./build/tensorrt/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --video=records/2026-11-04_20-40-43.avi --imu=records/2026-11-04_20-40-43.txt \
+  --mode=big --motion --headless --frames=689 --warmup=20 \
+  --backend=openvino --device=CPU --model=assets/buffer.onnx --log=records/buff_ab_onnx_20261104.jsonl
+
+./build/tensorrt/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --video=records/2026-11-04_20-40-43.avi --imu=records/2026-11-04_20-40-43.txt \
+  --mode=big --motion --headless --frames=689 --warmup=20 \
+  --backend=tensorrt --engine=build/buff_engines/buffer.fp32.engine --cuda-device=0 \
+  --log=records/buff_ab_trt_fp32_fixed_20261104.jsonl
+
+python3 tools/buff_real_validation.py records/buff_ab_onnx_20261104.jsonl \
+  --compare=records/buff_ab_xml_20261104.jsonl --output=records/buff_ab_xml_onnx_20261104.json
+python3 tools/buff_real_validation.py records/buff_ab_trt_fp32_fixed_20261104.jsonl \
+  --compare=records/buff_ab_onnx_20261104.jsonl --output=records/buff_ab_onnx_trt_fp32_fixed_20261104.json
+
+# 旧录像同一段 300 帧用于法向歧义与时序回归，使用同样的 OpenVINO/ONNX 基线
+./build/tensorrt/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --video=records/2026-11-04_19-53-49.avi --imu=records/2026-11-04_19-53-49.txt \
+  --mode=big --motion --headless --frames=300 --warmup=20 \
+  --backend=openvino --device=CPU --model=assets/buffer.onnx \
+  --log=records/buff_ab_onnx_regression_20261104.jsonl
+./build/tensorrt/auto_buff_observation_debug --config=configs/standard4.yaml \
+  --video=records/2026-11-04_19-53-49.avi --imu=records/2026-11-04_19-53-49.txt \
+  --mode=big --motion --headless --frames=300 --warmup=20 \
+  --backend=tensorrt --engine=build/buff_engines/buffer.fp32.engine --cuda-device=0 \
+  --log=records/buff_ab_trt_fp32_regression_fixed_20261104.jsonl
+python3 tools/buff_real_validation.py records/buff_ab_trt_fp32_regression_fixed_20261104.jsonl \
+  --compare=records/buff_ab_onnx_regression_20261104.jsonl \
+  --output=records/buff_ab_onnx_trt_fp32_regression_fixed_20261104.json
+```
+
+每帧 JSONL 新增 `inference`，包含实际 backend、模型或 engine 路径/哈希、设备、精度、输入/输出形状及阶段计时。TensorRT 上传、预处理、推理、下载使用 CUDA event；`total_ms` 为包含同步和 CPU 后处理、排除绘制的 host wall time，`draw_ms` 单列。OpenVINO 无法独立测得的阶段为 null。原来的 `processing_ms` 包含 S3/S4/S5，不作为纯推理耗时。
+
+OpenVINO 的 `model_sha256` 使用 OpenSSL EVP SHA256：ONNX 为模型文件的原始字节哈希，XML IR 为先读 XML、再追加同名 `.bin` 权重字节后计算的聚合哈希；缺少或无法读取任一文件时初始化失败。该哈希包含 IR 权重变化，不等于单独 XML 的哈希，也不要求与同源 ONNX 哈希相等。TensorRT 的 `model_sha256` 来自构建元数据中的源 ONNX 身份。OpenSSL Crypto 是 `auto_buff` 的构建依赖，不使用自写 SHA 算法。
+
+对比按真实 `input_frame_index` 和采集时间对齐，匹配空间位置，统计检出增删、类别、五点偏差、S3 质量、S4 重建与误差、S5 收敛和未来 0.5 秒相位误差，以及耗时 median/P95。`--comparison-report-only` 只关闭对比的工程阈值，仍检查双方数据不变量及录像、时间、标定一致性。不能把原 700 帧 live 日志与 Recorder 保存的 689 帧直接逐行比较，也不能将两后端一致视为真实三维精度或开火验收通过。
+
+### FP32 真实回放结果与预处理修复
+
+初版 GPU resize 使用浮点双线性插值再四舍五入，即便与 CPU 只有 1 LSB 的像素差异，也改变了网络五点和后续平面 PnP 分支。在旧录像前 60 帧中，OpenVINO/ONNX 成功 60/60，初版 TensorRT 只有 54/60；放大到 300 帧时，S4 从基线 295/300 降为 289/300，下降 2 个百分点，超过原定 1 个百分点门限，而且没有可评估的 S5 holdout 对。因此没有以“像素差很小”接受该实现。
+
+排查时保持相同 TensorRT engine，临时改用 CPU/OpenCV 预处理后，前 60 帧恢复为 60/60；将 GPU kernel 改为匹配 OpenCV u8 resize 的坐标、固定点系数和分阶段取整后，同一 60 帧再次恢复为 60/60。CUDA 预处理测试现要求 u8 采样一致，仅容许归一化浮点舍入误差，另检查灰边 114、RGB 顺序、非连续 ROI、缩放与原尺寸分支；`--frames=60` 会继续检查后续真实帧。CPU probe 仅用于定位原因，最终 TensorRT 路径仍使用 CUDA 预处理。
+
+最终固定点版本使用相同阈值、时间戳、IMU 和标定，与同一 `buffer.onnx` 的 OpenVINO/CPU 基线比较。两份最终报告分别为 `records/buff_ab_onnx_trt_fp32_regression_fixed_20261104.json` 和 `records/buff_ab_onnx_trt_fp32_fixed_20261104.json`；数据不变量及已声明的工程对比门限均通过，没有启用 `--comparison-report-only`。
+
+| 真实回放 | 同类检测匹配 | 五点距离 P95 | S4：OpenVINO / TensorRT | S5：双方收敛帧 / 有效 holdout 对 | TensorRT 的 0.5 s 相位误差 P95 |
+|---|---|---|---|---|---|
+| 旧录像 300 帧 | 600/600，零增删、零类别变化 | 0.00006824 px | 295/300 / 295/300 | 75 / 27 | 3.83483° |
+| 最终录像 689 帧 | 1378/1378，零增删、零类别变化 | 0.00008632 px | 674/689 / 674/689 | 405 / 264 | 8.82938° |
+
+两份回放的 S3 质量与轮廓数量也一致，S4 均为 PnP；最大接受帧间法向变化分别为 18.353°、13.085°。两段录像的模型候选均为未激活类，不能据此宣称另外两类激活状态也已覆盖。这里的“一致”指相同 ONNX 下的后端对比，五点仍有约浮点舍入量级的差异；原 XML 与 ONNX 的压缩权重差异另有 `buff_ab_xml_onnx_20261104.json` 报告，不能将它们合并成同一模型的零差异承诺。
+
+以下性能均为预热 20 次后的 **detector host wall time，排除绘制**，包含上传、CUDA 预处理、推理、下载、同步及 CPU 后处理。它不是相机实时帧率，也不包含 S3/S4/S5 的整条处理耗时。
+
+| 真实回放 | OpenVINO/CPU median / P95 | TensorRT FP32 median / P95 |
+|---|---|---|
+| 300 帧 | 35.815 / 46.981 ms | 2.727 / 3.215 ms |
+| 689 帧 | 33.715 / 45.297 ms | 2.760 / 2.997 ms |
+
+689 帧 TensorRT 的 CUDA event 中位数为：上传 0.802 ms、预处理 0.040 ms、推理 1.769 ms、下载 0.071 ms。各阶段的统计边界与 OpenVINO 不同，性能结论以上表的完整 detector 计时为准。
+
+最终 CUDA 预处理测试从主录像读取 60 张真实原帧，包含首帧派生的 ROI、奇数尺寸、灰边、缩放、灰度/BGRA 转换等共 72 个检查，均通过 u8 像素一致断言。该轮记录中，OFF 构建的 10 个目标、ON 构建的 6 个目标及协议/检测适配测试通过；其中旧检测适配测试现已随接口删除。关闭 TensorRT 后请求该后端、无效 CUDA 设备、损坏 engine、错误模型头和冲突参数均有明确失败结果。离线构建失败保留原 engine/元数据的检查也通过。
+
+### FP16 补测：未通过工程验收
+
+FP32 两段录像通过后，另行构建 FP16 engine，保持相同 GPU 预处理、阈值和回放资料进行测试。两段录像均检出相同的全部符片，但下列既定门限未通过，未放宽门限，也未改动 S3～S6：
+
+| 真实回放 | 五点距离 P95 / 最大值 | S4：OpenVINO / FP16 | FP16 detector median / P95 | 未通过项目 |
+|---|---|---|---|---|
+| 689 帧 | 0.451 / 3.624 px | 674/689 / 675/689 | 1.878 / 2.077 ms | 最大五点距离超过 3 px |
+| 300 帧 | 0.297 / 2.940 px | 295/300 / 286/300 | 1.871 / 2.067 ms | S4 成功率下降 3 个百分点，且无共同可评估的 S5 holdout 对 |
+
+报告为 `records/buff_ab_onnx_trt_fp16_20261104.json` 和 `records/buff_ab_onnx_trt_fp16_regression_20261104.json`，校验命令均返回失败。FP16 只保留显式构建/加载能力，不作为已验收版本；本轮通过后端对比门限的是 FP32 engine，当前 `standard4.yaml` 也显式指定该 FP32 engine。该结论限于上述真实录像回放，不代表实车闭环验收。依用户“测完即可”的要求，到此结束测试，不继续做 FP16 精度调优。
+
+本轮使用真实录像回放，未连接相机/串口进行新采集或控制测试。S5 holdout 参照仍为未来图像重建相位，没有编码器真值。正式入口把检测标注后的图像传给 S3 的既有污染问题尚未修复，本次独立调试工具始终使用干净原图，因此这些结果不能代替正式入口 S3、绝对三维精度或开火闭环验收。

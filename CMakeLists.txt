@@ -2,6 +2,25 @@ cmake_minimum_required(VERSION 3.16.3)
 
 project(spr_vision_26)
 
+option(SPR_AUTO_BUFF_TENSORRT "Enable TensorRT inference and CUDA preprocessing for auto_buff" OFF)
+if(SPR_AUTO_BUFF_TENSORRT)
+  if(CMAKE_VERSION VERSION_LESS 3.18)
+    message(FATAL_ERROR "SPR_AUTO_BUFF_TENSORRT requires CMake >= 3.18")
+  endif()
+  if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES OR "${CMAKE_CUDA_ARCHITECTURES}" STREQUAL "")
+    if(DEFINED ENV{CUDAARCHS} AND NOT "$ENV{CUDAARCHS}" STREQUAL "")
+      set(CMAKE_CUDA_ARCHITECTURES "$ENV{CUDAARCHS}" CACHE STRING "CUDA target architectures" FORCE)
+    elseif(CMAKE_VERSION VERSION_LESS 3.24)
+      message(FATAL_ERROR
+        "Specify -DCMAKE_CUDA_ARCHITECTURES=<SM> with CMake < 3.24; native requires CMake >= 3.24")
+    else()
+      set(CMAKE_CUDA_ARCHITECTURES native CACHE STRING "CUDA target architectures" FORCE)
+    endif()
+  endif()
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
+endif()
+
 # 仅支持 ROS2 Humble;若当前环境不是 Humble(例如 Jazzy),则跳过所有 ROS2 相关包的编译
 set(SPR_USE_ROS2 OFF)
 if(DEFINED ENV{ROS_DISTRO})
@@ -92,6 +111,7 @@ add_executable(auto_aim_debug_mpc src/auto_aim_debug_mpc.cpp)
 add_executable(mt_auto_aim_debug src/mt_auto_aim_debug.cpp)
 add_executable(auto_buff_debug src/auto_buff_debug.cpp)
 add_executable(auto_buff_debug_mpc src/auto_buff_debug_mpc.cpp)
+add_executable(auto_buff_observation_debug src/auto_buff_observation_debug.cpp)
 add_executable(uav src/uav.cpp)
 add_executable(uav_debug src/uav_debug.cpp)
 add_executable(sentry_multithread_noros src/sentry_multithread_noros.cpp)
@@ -103,6 +123,7 @@ target_link_libraries(auto_aim_debug_mpc ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_a
 target_link_libraries(mt_auto_aim_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 target_link_libraries(auto_buff_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io ${CERES_LIBRARIES})
 target_link_libraries(auto_buff_debug_mpc ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io ${CERES_LIBRARIES})
+target_link_libraries(auto_buff_observation_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io web_debugger)
 target_link_libraries(uav ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim auto_buff tools io)
 target_link_libraries(uav_debug ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim tools io)
 target_link_libraries(sentry_multithread_noros ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_aim omniperception tools io)
@@ -127,16 +148,13 @@ add_executable(web_debugger_stress_test tests/web_debugger_stress_test.cpp tools
 add_executable(web_debugger_copy_benchmark tests/web_debugger_copy_benchmark.cpp)
 add_executable(auto_aim_test tests/auto_aim_test.cpp)
 add_executable(auto_buff_test tests/auto_buff_test.cpp)
-if(EXISTS "${PROJECT_SOURCE_DIR}/tests/buff_observation_test.cpp")
-  add_executable(buff_observation_test tests/buff_observation_test.cpp)
-endif()
 add_executable(buff_processor_protocol_test tests/buff_processor_protocol_test.cpp)
-add_executable(buff_detector_adapter_test tests/buff_detector_adapter_test.cpp)
+add_executable(buff_reconstruction_test tests/buff_reconstruction_test.cpp)
+if(SPR_AUTO_BUFF_TENSORRT)
+  add_executable(buff_cuda_preprocess_test tests/buff_cuda_preprocess_test.cpp)
+endif()
 add_executable(buff_detector_test tests/buff_detector_test.cpp)
 add_executable(buff_refiner_video_test tests/buff_refiner_video_test.cpp)
-if(EXISTS "${PROJECT_SOURCE_DIR}/tests/yolo11_buff_video_test.cpp")
-  add_executable(yolo11_buff_video_test tests/yolo11_buff_video_test.cpp)
-endif()
 add_executable(camera_detect_test tests/camera_detect_test.cpp)
 add_executable(camera_test tests/camera_test.cpp)
 add_executable(camera_thread_test tests/camera_thread_test.cpp)
@@ -156,16 +174,14 @@ target_link_libraries(web_debugger_stress_test ${OpenCV_LIBS} fmt::fmt spdlog::s
 target_link_libraries(web_debugger_copy_benchmark ${OpenCV_LIBS} nlohmann_json::nlohmann_json)
 target_link_libraries(auto_aim_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
 target_link_libraries(auto_buff_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
-if(TARGET buff_observation_test)
-  target_link_libraries(buff_observation_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
-endif()
 target_link_libraries(buff_processor_protocol_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
-target_link_libraries(buff_detector_adapter_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+target_link_libraries(buff_reconstruction_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+if(SPR_AUTO_BUFF_TENSORRT)
+  # Requires a real input video; run explicitly instead of registering a hardware CTest.
+  target_link_libraries(buff_cuda_preprocess_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools io)
+endif()
 target_link_libraries(buff_detector_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
 target_link_libraries(buff_refiner_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
-if(TARGET yolo11_buff_video_test)
-  target_link_libraries(yolo11_buff_video_test ${OpenCV_LIBS} fmt::fmt yaml-cpp auto_buff tools)
-endif()
 target_link_libraries(camera_detect_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools auto_aim io)
 target_link_libraries(camera_test ${OpenCV_LIBS} fmt::fmt tools io)
 target_link_libraries(camera_thread_test ${OpenCV_LIBS} fmt::fmt auto_aim tools io)
@@ -182,20 +198,18 @@ target_link_libraries(dm_test ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io)
 target_link_libraries(minimum_vision_system ${OpenCV_LIBS} fmt::fmt yaml-cpp tools io auto_aim)
 
 if(BUILD_TESTING)
+  foreach(buff_test buff_reconstruction_test buff_processor_protocol_test)
+    add_test(NAME ${buff_test} COMMAND ${buff_test})
+    set_tests_properties(${buff_test} PROPERTIES
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      LABELS "unit;headless;auto_buff"
+      TIMEOUT 10)
+  endforeach()
   add_test(NAME web_debugger_stress_test COMMAND web_debugger_stress_test)
   set_tests_properties(web_debugger_stress_test PROPERTIES
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     LABELS "integration;headless;web_debugger"
     TIMEOUT 30)
-  if(TARGET buff_observation_test)
-    add_test(NAME buff_observation_test COMMAND buff_observation_test)
-    set_tests_properties(
-      buff_observation_test
-      PROPERTIES
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        LABELS "unit;headless;auto_buff"
-        TIMEOUT 10)
-  endif()
 endif()
 
 

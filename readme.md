@@ -66,7 +66,8 @@ spr_vision_26
 │   │   ├── planner/tinympc/        // MPC轨迹规划
 │   │   └── yolos/                  // YOLO系列推理
 │   ├── auto_buff/                  // 打符算法
-│   │   ├── buff_aimer / buff_detector / buff_solver ...
+│   │   ├── buff_processor / buff_detector / observation_refiner
+│   │   ├── rune_reconstructor / phase_motion_estimator / buff_decision_module
 │   │   └── ...
 │   └── omniperception/            // 全向感知
 │       ├── decider / perceptron
@@ -96,7 +97,6 @@ spr_vision_26
     ├── math_tools.cpp / .hpp       // 数学工具
     ├── pid.cpp / .hpp              // PID控制器
     ├── plotter.cpp / .hpp          // 曲线图绘制
-    ├── ransac_sine_fitter.cpp / .hpp // RANSAC正弦拟合
     └── ...
 ```
 
@@ -136,12 +136,14 @@ spr_vision_26
 
 | 组件 | 功能 |
 |------|------|
-| `BuffDetector` | 识别能量机关扇叶/旋转中心，支持 YOLO11 专用模型 |
-| `BuffSolver` | 解算能量机关在三维空间中的位置与姿态 |
-| `BuffAimer` | 预测扇叶旋转轨迹，计算提前量 |
-| `BuffPredict` | 基于 RANSAC 正弦拟合的旋转速度预测 |
+| `BuffProcessor`（S1） | 按 S3→S4→S5→S6 编排整帧观测，管理状态重置并映射云台协议 |
+| `Buff_Detector`（S2） | 通过 YOLO11 检出全部候选符片，输出标准五点、激活类别与置信度 |
+| `ObservationRefiner`（S3） | 校验五点观测，提取装甲、灯臂和 R 标轮廓，评估观测质量 |
+| `RuneReconstructor`（S4） | 多片联合 PnP 与 Chamfer 精修，重建世界坐标位姿、槽位和装甲中心 |
+| `PhaseMotionEstimator`（S5） | 维护连续相位；小符使用相位卡尔曼与方向投票，大符拟合谐波模型 |
+| `BuffDecisionModule`（S6，TODO） | 拦截预测、弹道求解和开火状态机尚未实现；`decide()` 当前返回不控制指令 |
 
-**特殊之处**：能量机关是旋转的，因此需要预测其旋转速度（角速度），并计算合适的提前瞄准点。预测器基于历史角速度数据使用 RANSAC 拟合正弦曲线来预测未来位置。
+**调用流程**：图像 → S2 全部候选 → S1 编排 S3 精化 → S4 多片重建 → 选择未激活目标 → S5 运动估计 → S6 决策 → 云台协议输出。几何有效但运动未收敛时仅保持当前实测姿态；S6 尚未实现，当前链路不能跟随符片或开火。
 
 #### omniperception — 全向感知（哨兵专用）
 
@@ -197,7 +199,6 @@ spr_vision_26
 | `exiter.cpp/hpp` | 优雅退出检测（按键检测） |
 | `plotter.cpp/hpp` | PlotJuggler UDP 数据推送 |
 | `recorder.cpp/hpp` | 视频/数据录制 |
-| `ransac_sine_fitter.cpp/hpp` | RANSAC 正弦曲线拟合（用于打符预测） |
 
 ---
 ## TODO / Roadmap

@@ -18,6 +18,8 @@ public:
   void record(
     const cv::Mat & img, const Eigen::Quaterniond & q,
     const std::chrono::steady_clock::time_point & timestamp);
+  const std::string & video_path() const { return video_path_; }
+  const std::string & text_path() const { return text_path_; }
 
 private:
   struct FrameData

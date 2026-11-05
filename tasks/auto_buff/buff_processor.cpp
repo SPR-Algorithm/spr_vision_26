@@ -1,161 +1,205 @@
 #include "buff_processor.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdint>
+#include <limits>
 #include <stdexcept>
+#include <utility>
 
 #include <yaml-cpp/yaml.h>
 
 namespace auto_buff
 {
-namespace
-{
-bool is_finite(float value)
-{
-  return std::isfinite(value);
-}
-
-float cross(const cv::Point2f & a, const cv::Point2f & b, const cv::Point2f & c)
-{
-  const auto ab = b - a;
-  const auto bc = c - b;
-  return ab.x * bc.y - ab.y * bc.x;
-}
-}  // namespace
-
 BuffInput make_buff_input(
-  const cv::Mat & img, std::chrono::steady_clock::time_point timestamp,
-  const Eigen::Quaterniond & imu_q, io::GimbalState gimbal_state, io::GimbalMode gimbal_mode,
-  const std::optional<BuffObservation> & observation)
+  const cv::Mat & img, FrameTimestamp timestamp, const Eigen::Quaterniond & imu_q,
+  io::GimbalState gimbal_state, io::GimbalMode gimbal_mode,
+  std::vector<BuffObservation> observations)
 {
   BuffInput input;
   input.img = img;
   input.timestamp = timestamp;
+  input.observations = std::move(observations);
   input.imu_q = imu_q;
   input.gimbal_state = gimbal_state;
   input.gimbal_mode = gimbal_mode;
-  if (observation.has_value()) {
-    input.points = observation->points;
-    input.activation = observation->activation;
-    input.confidence = observation->confidence;
-  }
   return input;
 }
 
 BuffProcessor::BuffProcessor(const std::string & camera_config, const std::string & auto_buff_config)
+: refiner_(auto_buff_config), reconstructor_(camera_config)
 {
-  (void)camera_config;
   const auto config = YAML::LoadFile(auto_buff_config);
   const auto timeout_ms = config["tracking_timeout_ms"].as<int>();
   if (timeout_ms <= 0) throw std::runtime_error("tracking_timeout_ms must be positive");
   tracking_timeout_ = std::chrono::milliseconds(timeout_ms);
 }
 
-io::VisionToGimbal BuffProcessor::process(const BuffInput & input)
+io::VisionToGimbal BuffProcessor::process(const BuffInput & input, BuffDebugInfo * debug)
 {
-  if (last_mode_.has_value() && last_mode_.value() != input.gimbal_mode) {
+  if (debug) *debug = BuffDebugInfo{};
+  if (
+    (last_mode_ && *last_mode_ != input.gimbal_mode) ||
+    (last_timestamp_ && input.timestamp < *last_timestamp_) ||
+    (last_timestamp_ && input.timestamp - *last_timestamp_ > tracking_timeout_) ||
+    (last_reconstruction_timestamp_ &&
+     input.timestamp - *last_reconstruction_timestamp_ > tracking_timeout_)) {
     reset();
+    if (debug) debug->reset = true;
     return {};
   }
-  if (last_timestamp_.has_value() && input.timestamp < last_timestamp_.value()) {
-    reset();
-    return {};
-  }
-  if (last_timestamp_.has_value() && input.timestamp - last_timestamp_.value() > tracking_timeout_) {
-    reset();
-    return {};
-  }
-
-  io::VisionToGimbal output{};
   if (!is_valid(input)) {
     reset();
-    return output;
+    if (debug) debug->reset = true;
+    return {};
   }
-
+  if (debug) debug->input_valid = true;
   last_mode_ = input.gimbal_mode;
   last_timestamp_ = input.timestamp;
-  output.mode = 1;
-  return output;
+
+  // S2 is the detector adapter at the caller. Preserve every candidate for joint S4 geometry;
+  // observation validation and contour extraction belong exclusively to S3.
+  std::vector<RefinedObservation> blades;
+  blades.reserve(input.observations.size());
+  if (debug) debug->refined_observations.reserve(input.observations.size());
+  for (const auto & observation : input.observations) {
+    const auto state = resolve_state(input.gimbal_mode, observation.activation);
+    if (!state) {
+      if (debug) {
+        // Preserve S2 candidate indices even when state resolution rejects a candidate
+        // before refinement. This diagnostic does not enter reconstruction.
+        RefinedObservation rejected;
+        rejected.points = observation.points;
+        rejected.detection_confidence = observation.confidence;
+        rejected.reject_reason = ObservationRejectReason::STATE_MODE_CONFLICT;
+        debug->refined_observations.push_back(std::move(rejected));
+      }
+      continue;
+    }
+    auto refined = refiner_.refine(input.img, observation, *state);
+    if (debug) debug->refined_observations.push_back(refined);
+    if (refined.valid()) blades.push_back(std::move(refined));
+  }
+  if (blades.empty()) return {};
+  // S4 carries slot associations and armor centers along with the common rune pose.
+  const auto reconstruction = reconstructor_.reconstruct(
+    blades, input.imu_q.normalized(), last_reconstruction_pose_);
+  if (debug) debug->reconstruction = reconstruction;
+  if (!reconstruction) return {};
+  last_reconstruction_timestamp_ = input.timestamp;
+  last_reconstruction_pose_ = reconstruction->pose;
+
+  const ReconstructedBlade * target_blade = nullptr;
+  for (const auto & blade : reconstruction->blades) {
+    if (
+      !blade.observation.valid() || !blade.observation.state ||
+      blade.observation.state->activation != ActivationState::INACTIVE) {
+      continue;
+    }
+    if (
+      target_blade == nullptr || blade.observation.detection_confidence >
+                                   target_blade->observation.detection_confidence) {
+      target_blade = &blade;
+    }
+  }
+  if (target_blade == nullptr) return {};
+  if (debug) debug->target_slot = target_blade->slot;
+
+  // S5 absence means geometry exists but motion has not converged: attitude hold only.
+  const auto target =
+    motion_estimator_.update(reconstruction->pose, *target_blade, input.timestamp);
+  if (debug) {
+    debug->target = target;
+    debug->motion = motion_estimator_.diagnostics();
+  }
+  if (!target) {
+    const auto decision = decision_module_.track(input.gimbal_state);
+    if (debug) debug->decision = decision;
+    return map_output(decision);
+  }
+
+  // S6 owns interception, ballistics and firing timing. Apply the common quality gate before
+  // the single conversion to the protocol; a PnP fallback can never authorize firing.
+  auto decision = decision_module_.decide(
+    *target, input.gimbal_state, std::chrono::steady_clock::now());
+  if (
+    decision.mode == BuffControlMode::FIRE &&
+    (target->quality != TrackingQuality::GOOD ||
+     target->pose.source != PoseSource::CHAMFER_REFINED || !target->motion.converged ||
+     target->motion.model == MotionModel::UNAVAILABLE)) {
+    decision.mode = BuffControlMode::TRACKING;
+  }
+  if (debug) debug->decision = decision;
+  return map_output(decision);
 }
 
 void BuffProcessor::reset()
 {
+  motion_estimator_.reset();
+  decision_module_.reset();
   last_mode_.reset();
   last_timestamp_.reset();
+  last_reconstruction_timestamp_.reset();
+  last_reconstruction_pose_.reset();
 }
 
 bool BuffProcessor::is_valid(const BuffInput & input)
 {
-  if (input.img.empty() || !std::isfinite(input.confidence) || input.confidence < 0.0F ||
-      input.confidence > 1.0F) {
+  if (
+    input.img.empty() ||
+    (input.gimbal_mode != io::GimbalMode::SMALL_BUFF &&
+     input.gimbal_mode != io::GimbalMode::BIG_BUFF)) {
     return false;
   }
-
-  if (!input.imu_q.coeffs().allFinite() || input.imu_q.squaredNorm() <= 1e-12) return false;
+  const auto quaternion_norm_squared = input.imu_q.squaredNorm();
+  if (
+    !input.imu_q.coeffs().allFinite() || !std::isfinite(quaternion_norm_squared) ||
+    quaternion_norm_squared <= 1e-12) {
+    return false;
+  }
 
   const auto & state = input.gimbal_state;
-  if (!is_finite(state.yaw) || !is_finite(state.yaw_vel) || !is_finite(state.pitch) ||
-      !is_finite(state.pitch_vel) || !is_finite(state.bullet_speed)) {
-    return false;
-  }
-
-  return has_valid_points(input) && has_compatible_activation(input);
+  return std::isfinite(state.yaw) && std::isfinite(state.yaw_vel) && std::isfinite(state.pitch) &&
+         std::isfinite(state.pitch_vel) && std::isfinite(state.bullet_speed);
 }
 
-bool BuffProcessor::has_compatible_activation(const BuffInput & input)
+std::optional<RuneState> BuffProcessor::resolve_state(
+  io::GimbalMode mode, BuffActivation activation)
 {
-  switch (input.gimbal_mode) {
-    case io::GimbalMode::SMALL_BUFF:
-      return input.activation == BuffActivation::INACTIVE ||
-             input.activation == BuffActivation::SMALL_ACTIVATED;
-    case io::GimbalMode::BIG_BUFF:
-      return input.activation == BuffActivation::INACTIVE ||
-             input.activation == BuffActivation::BIG_ACTIVATED;
-    case io::GimbalMode::IDLE:
-    case io::GimbalMode::AUTO_AIM:
-      return false;
+  if (mode != io::GimbalMode::SMALL_BUFF && mode != io::GimbalMode::BIG_BUFF) return std::nullopt;
+
+  const auto kind = mode == io::GimbalMode::SMALL_BUFF ? RuneKind::SMALL : RuneKind::BIG;
+  if (activation == BuffActivation::INACTIVE) return RuneState{kind, ActivationState::INACTIVE};
+  if (
+    (kind == RuneKind::SMALL && activation == BuffActivation::SMALL_ACTIVATED) ||
+    (kind == RuneKind::BIG && activation == BuffActivation::BIG_ACTIVATED)) {
+    return RuneState{kind, ActivationState::ACTIVATED};
   }
-  return false;
+  return std::nullopt;
 }
 
-bool BuffProcessor::has_valid_points(const BuffInput & input)
+io::VisionToGimbal BuffProcessor::map_output(const BuffDecision & decision)
 {
-  for (const auto & point : input.points) {
-    if (!is_finite(point.x) || !is_finite(point.y) || point.x < 0.0F || point.y < 0.0F ||
-        point.x >= input.img.cols || point.y >= input.img.rows) {
-      return false;
-    }
+  if (decision.mode != BuffControlMode::TRACKING && decision.mode != BuffControlMode::FIRE) return {};
+
+  const std::array<double, 6> fields = {
+    decision.yaw, decision.yaw_vel, decision.yaw_acc,
+    decision.pitch, decision.pitch_vel, decision.pitch_acc};
+  if (!std::all_of(fields.begin(), fields.end(), [](double value) {
+        return std::isfinite(value) && std::abs(value) <= std::numeric_limits<float>::max();
+      })) {
+    return {};
   }
 
-  const auto & top = input.points[0];
-  const auto & right = input.points[1];
-  const auto & bottom = input.points[2];
-  const auto & left = input.points[3];
-  if (top.y >= right.y || top.y >= left.y || bottom.y <= right.y || bottom.y <= left.y ||
-      right.x <= top.x || right.x <= bottom.x || left.x >= top.x || left.x >= bottom.x) {
-    return false;
-  }
-
-  const std::array<float, 4> turns = {
-    cross(top, right, bottom), cross(right, bottom, left), cross(bottom, left, top),
-    cross(left, top, right)};
-  const bool clockwise = turns[0] < -1e-3F;
-  const bool counter_clockwise = turns[0] > 1e-3F;
-  if (!clockwise && !counter_clockwise) return false;
-
-  for (const auto turn : turns) {
-    if ((clockwise && turn >= -1e-3F) || (counter_clockwise && turn <= 1e-3F)) return false;
-  }
-
-  const auto & r_mark = input.points[4];
-  for (const auto & corner : {top, right, bottom, left}) {
-    if (cv::norm(r_mark - corner) <= 1e-3F) return false;
-  }
-  if (std::abs(cross(top, right, r_mark)) <= 1e-3F ||
-      std::abs(cross(right, bottom, r_mark)) <= 1e-3F ||
-      std::abs(cross(bottom, left, r_mark)) <= 1e-3F ||
-      std::abs(cross(left, top, r_mark)) <= 1e-3F) {
-    return false;
-  }
-  return true;
+  io::VisionToGimbal output{};
+  output.mode = static_cast<std::uint8_t>(decision.mode);
+  output.yaw = static_cast<float>(decision.yaw);
+  output.yaw_vel = static_cast<float>(decision.yaw_vel);
+  output.yaw_acc = static_cast<float>(decision.yaw_acc);
+  output.pitch = static_cast<float>(decision.pitch);
+  output.pitch_vel = static_cast<float>(decision.pitch_vel);
+  output.pitch_acc = static_cast<float>(decision.pitch_acc);
+  return output;
 }
 }  // namespace auto_buff

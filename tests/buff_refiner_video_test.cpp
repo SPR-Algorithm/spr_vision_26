@@ -26,7 +26,6 @@
 #include <filesystem>
 #include <fstream>
 #include <numeric>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -330,8 +329,8 @@ int main(int argc, char **argv) {
 
     // 克隆一份用于检测, 避免污染显示/保存用的干净原图(否则标签会遮挡特征)
     cv::Mat work = img.clone();
-    auto observation = detector.detect_observation(work);
-    if (!observation.has_value()) {
+    const auto observations = detector.detect_observations(work);
+    if (observations.empty()) {
       if (!benchmark) {
         cv::putText(img, "NO DETECT", {15, 30}, cv::FONT_HERSHEY_SIMPLEX, 0.9,
                     cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
@@ -344,10 +343,11 @@ int main(int argc, char **argv) {
     }
     ++detect_frames;
 
-    // 观测 -> RuneState -> ObservationRefiner
-    const auto state = to_rune_state(observation->activation);
+    // 单片精化测试展示最高质量候选，检测统一使用整帧多片入口。
+    const auto & observation = observations.front();
+    const auto state = to_rune_state(observation.activation);
     const auto t0 = std::chrono::steady_clock::now();
-    const auto result = refiner.refine(img, observation.value(), state);
+    const auto result = refiner.refine(img, observation, state);
     const auto t1 = std::chrono::steady_clock::now();
     refine_ms_samples.push_back(
         std::chrono::duration<double, std::milli>(t1 - t0).count());
@@ -369,7 +369,7 @@ int main(int argc, char **argv) {
       cv::imshow("Original Video", fit_display(img, window_width));
       // 窗口 2: ROI + 装甲板/R 标/灯臂轮廓 + 质量信息
       const cv::Mat overlay =
-          draw_overlay(img, observation.value(), result, frame_count);
+          draw_overlay(img, observation, result, frame_count);
       cv::imshow("Overlay (ROI / armor / R / arm)",
                  fit_display(overlay, window_width));
       // 窗口 3: 语义分割填充
@@ -385,7 +385,7 @@ int main(int argc, char **argv) {
         key = cv::waitKey(30);
       if (writer.isOpened()) {
         const cv::Mat canvas =
-            compose_save_canvas(draw_input_panel(img, observation.value()),
+            compose_save_canvas(draw_input_panel(img, observation),
                                 overlay, semantic, roi_panel);
         writer.write(canvas);
       }

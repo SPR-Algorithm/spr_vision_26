@@ -50,6 +50,7 @@ int main(int argc, char * argv[])
     const auto q = cboard.imu_at(timestamp - 1ms);
     mode = cboard.mode;
     if (last_mode != mode) {
+      buff_processor.reset();
       tools::logger()->info("Switch to {}", io::MODES[mode]);
       last_mode = mode;
     }
@@ -63,9 +64,9 @@ int main(int argc, char * argv[])
       command.shoot = shooter.shoot(command, aimer, targets, ypr);
       cboard.send(command);
     } else if (mode == io::Mode::small_buff || mode == io::Mode::big_buff) {
-      const auto observation = buff_detector.detect_observation(img);
+      const auto observations = buff_detector.detect_observations(img);
       const auto output = buff_processor.process(auto_buff::make_buff_input(
-        img, timestamp, q, cboard.gimbal_state(), cboard.gimbal_mode(), observation));
+        img, timestamp, q, cboard.gimbal_state(), cboard.gimbal_mode(), observations));
       cboard.send(output);
     }
   }

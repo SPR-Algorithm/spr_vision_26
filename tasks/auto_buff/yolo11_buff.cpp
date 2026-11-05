@@ -1,12 +1,41 @@
 #include "yolo11_buff.hpp"
+#include "yolo11_buff_backend.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <filesystem>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 #include <stdexcept>
 #include <string>
+#include <utility>
+#include <yaml-cpp/yaml.h>
+
+#include "tools/logger.hpp"
 
 namespace auto_buff {
+BuffLetterbox make_buff_letterbox(int source_width, int source_height, int width, int height)
+{
+  if (source_width <= 0 || source_height <= 0 || width <= 0 || height <= 0) {
+    throw std::invalid_argument("[YOLO11_BUFF] Invalid letterbox dimensions");
+  }
+  BuffLetterbox result;
+  result.width = width;
+  result.height = height;
+  result.scale = std::min(float(width) / source_width, float(height) / source_height);
+  result.resized_width = std::max(1, int(std::round(source_width * result.scale)));
+  result.resized_height = std::max(1, int(std::round(source_height * result.scale)));
+  result.pad_x = (width - result.resized_width) / 2;
+  result.pad_y = (height - result.resized_height) / 2;
+  return result;
+}
+
 namespace {
+// RuneDetectionModel 类别定义 (与 buffer-0624.xml / model-0624.onnx 一致)。
+constexpr std::array<const char *, 3> class_names = {
+  "inactive", "small_activated", "big_activated"};
+
 // 可选读取 yaml 字段, 缺省时保留成员默认值 (与 RP-26 detect.json 对齐)
 template <typename T>
 void read_threshold_if_present(const YAML::Node &node, const char *key,
@@ -16,12 +45,9 @@ void read_threshold_if_present(const YAML::Node &node, const char *key,
 }
 } // namespace
 
-YOLO11_BUFF::YOLO11_BUFF(const std::string &config) {
+YOLO11_BUFF::YOLO11_BUFF(const std::string &config, std::unique_ptr<Yolo11BuffBackend> backend)
+: backend_(std::move(backend)) {
   auto yaml = YAML::LoadFile(config);
-  std::string model_path = yaml["model"].as<std::string>();
-  std::string device =
-      yaml["device"] ? yaml["device"].as<std::string>() : "CPU";
-
   // 后处理阈值: 与 RP-26 detect.json 一致 (conf 0.65 / kconf 0.5 / nms 30 /
   // min_valid 5)
   read_threshold_if_present(yaml, "conf", conf_threshold_);
@@ -42,49 +68,29 @@ YOLO11_BUFF::YOLO11_BUFF(const std::string &config) {
   if (!yaml["min_valid_kpts"])
     read_threshold_if_present(yaml, "min_valid_keypoints", min_valid_kpts_);
 
-  model = core.read_model(model_path);
-
-  // 解析输入尺寸 (NCHW, 如 [1,3,480,640])
-  const auto input_shape = model->input().get_shape();
-  if (input_shape.size() != 4) {
-    throw std::runtime_error("[YOLO11_BUFF] 模型输入非4维 NCHW");
+  if (!backend_) throw std::invalid_argument("[YOLO11_BUFF] Missing inference backend");
+  diagnostics_.info = backend_->info();
+  const auto & input_shape = diagnostics_.info.input_shape;
+  if (input_shape.size() != 4 || input_shape[0] != 1 || input_shape[1] != 3 ||
+      input_shape[2] <= 0 || input_shape[3] <= 0) {
+    throw std::runtime_error("[YOLO11_BUFF] Expected static [1,3,H,W] input");
   }
   input_height_ = static_cast<int>(input_shape[2]);
   input_width_ = static_cast<int>(input_shape[3]);
-
-  // PrePostProcessor: BGR u8 NHWC -> RGB f32 [0,1] NCHW
-  auto ppp = ov::preprocess::PrePostProcessor(model);
-  ppp.input()
-      .tensor()
-      .set_element_type(ov::element::u8)
-      .set_layout("NHWC")
-      .set_color_format(ov::preprocess::ColorFormat::BGR);
-  ppp.input()
-      .preprocess()
-      .convert_element_type(ov::element::f32)
-      .convert_color(ov::preprocess::ColorFormat::RGB)
-      .scale(255.0f);
-  ppp.input().model().set_layout("NCHW");
-  model = ppp.build();
-
-  compiled_model = core.compile_model(
-      model, device,
-      ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
-  infer_request = compiled_model.create_infer_request();
-
-  // 解析输出尺寸 [1, C, A] 或 [1, A, C] (与 RP-26 相同的自动判别规则)
-  const auto output_shape = compiled_model.output().get_shape();
-  if (output_shape.size() != 3) {
-    throw std::runtime_error("[YOLO11_BUFF] 模型输出非3维");
+  const auto & output_shape = diagnostics_.info.output_shape;
+  if (output_shape.size() != 3 || output_shape[0] != 1 || output_shape[1] <= 0 || output_shape[2] <= 0) {
+    throw std::runtime_error("[YOLO11_BUFF] Expected static batch=1 three-dimensional output");
   }
-  if (output_shape[1] <= 256 && output_shape[2] >= 100) {
+  if (output_shape[1] == 18 && output_shape[2] != 18) {
     output_is_nca_ = true;
     output_channels_ = static_cast<int>(output_shape[1]);
     num_anchors_ = static_cast<int>(output_shape[2]);
-  } else {
+  } else if (output_shape[2] == 18 && output_shape[1] != 18) {
     output_is_nca_ = false;
     num_anchors_ = static_cast<int>(output_shape[1]);
     output_channels_ = static_cast<int>(output_shape[2]);
+  } else {
+    throw std::runtime_error("[YOLO11_BUFF] Expected unambiguous [1,18,A] or [1,A,18] output");
   }
 
   // RuneDetectionModel 固定 3 类别 + 5 关键点 * 3 (x,y,conf) = 18 通道 (与
@@ -100,8 +106,8 @@ YOLO11_BUFF::YOLO11_BUFF(const std::string &config) {
       "[YOLO11_BUFF] 模型加载成功: {} (输入 {}x{}, 输出 [{},{}], layout: {}, "
       "device: {}, conf: {:.2f}, "
       "kconf: {:.2f}, nms: {:.0f}, min_valid_kpts: {})",
-      model_path, input_width_, input_height_, output_channels_, num_anchors_,
-      output_is_nca_ ? "[1,C,A]" : "[1,A,C]", device, conf_threshold_,
+      diagnostics_.info.model_path, input_width_, input_height_, output_channels_, num_anchors_,
+      output_is_nca_ ? "[1,C,A]" : "[1,A,C]", diagnostics_.info.backend + ":" + diagnostics_.info.device, conf_threshold_,
       kpt_conf_threshold_, nms_dist_threshold_, min_valid_kpts_);
 }
 
@@ -124,39 +130,14 @@ cv::Mat YOLO11_BUFF::normalize_input(const cv::Mat &source) {
   return bgr;
 }
 
-void YOLO11_BUFF::letterbox(const cv::Mat &src, cv::Mat &dst, float &scale,
-                            int &pad_w, int &pad_h) const {
-  scale = std::min(static_cast<float>(input_width_) / src.cols,
-                   static_cast<float>(input_height_) / src.rows);
-  const int new_w = static_cast<int>(std::round(src.cols * scale));
-  const int new_h = static_cast<int>(std::round(src.rows * scale));
+YOLO11_BUFF::~YOLO11_BUFF() = default;
 
-  pad_w = (input_width_ - new_w) / 2;
-  pad_h = (input_height_ - new_h) / 2;
-  const int right = input_width_ - new_w - pad_w;
-  const int bottom = input_height_ - new_h - pad_h;
-
-  cv::Mat resized;
-  if (new_w != src.cols || new_h != src.rows)
-    cv::resize(src, resized, cv::Size(new_w, new_h));
-  else
-    resized = src;
-
-  if (pad_w > 0 || pad_h > 0 || right > 0 || bottom > 0)
-    cv::copyMakeBorder(resized, dst, pad_h, bottom, pad_w, right,
-                       cv::BORDER_CONSTANT, cv::Scalar(114, 114, 114));
-  else
-    dst = resized;
-}
-
-std::vector<YOLO11_BUFF::Object> YOLO11_BUFF::postprocess(float scale,
+std::vector<YOLO11_BUFF::Object> YOLO11_BUFF::postprocess(const float *output_data, float scale,
                                                           int pad_w, int pad_h,
                                                           int orig_w,
                                                           int orig_h) {
   std::vector<Object> objects;
   objects.reserve(64);
-  const float *const output_data =
-      infer_request.get_output_tensor().data<float>();
 
   // 自动按 [1,C,A] 或 [1,A,C] 布局取元素 (与 RP-26 一致)
   const auto value_at = [this, output_data](int channel, int anchor) -> float {
@@ -263,6 +244,7 @@ YOLO11_BUFF::nms(std::vector<Object> &objects) {
 
 std::vector<YOLO11_BUFF::Object>
 YOLO11_BUFF::get_multicandidateboxes(cv::Mat &image) {
+  diagnostics_.timings = {};
   if (image.empty()) {
     tools::logger()->warn("[YOLO11_BUFF] Empty img!, camera drop!");
     return std::vector<Object>();
@@ -272,26 +254,15 @@ YOLO11_BUFF::get_multicandidateboxes(cv::Mat &image) {
   // 统一输入为 8-bit BGR (支持 1/3/4 通道), 与 RP-26 一致
   const cv::Mat bgr = normalize_input(image);
 
-  // 预处理: letterbox
-  float scale = 1.0f;
-  int pad_w = 0, pad_h = 0;
-  cv::Mat preprocessed;
-  letterbox(bgr, preprocessed, scale, pad_w, pad_h);
-  if (!preprocessed.isContinuous())
-    preprocessed = preprocessed.clone();
-
-  // 输入为 BGR u8 NHWC, PrePostProcessor 会自动转 RGB f32 [0,1] NCHW
-  ov::Tensor input_tensor(ov::element::u8,
-                          {1, static_cast<size_t>(input_height_),
-                           static_cast<size_t>(input_width_), 3},
-                          preprocessed.data);
-  infer_request.set_input_tensor(input_tensor);
-
-  // 推理
-  infer_request.infer();
-
-  // 后处理
-  auto objects = postprocess(scale, pad_w, pad_h, image.cols, image.rows);
+  const auto transform = make_buff_letterbox(image.cols, image.rows, input_width_, input_height_);
+  const float * output = backend_->infer(bgr, transform, diagnostics_.timings);
+  const int64 postprocess_start = cv::getTickCount();
+  auto objects = postprocess(output, transform.scale, transform.pad_x, transform.pad_y,
+                             image.cols, image.rows);
+  diagnostics_.timings.postprocess_ms =
+    (cv::getTickCount() - postprocess_start) * 1000.0 / cv::getTickFrequency();
+  diagnostics_.timings.total_ms = (cv::getTickCount() - start) * 1000.0 / cv::getTickFrequency();
+  const int64 draw_start = cv::getTickCount();
 
   draw(image, objects);
 
@@ -299,6 +270,7 @@ YOLO11_BUFF::get_multicandidateboxes(cv::Mat &image) {
       (cv::getTickCount() - start) / static_cast<float>(cv::getTickFrequency());
   cv::putText(image, cv::format("FPS: %.2f", 1.0 / t), cv::Point(20, 40),
               cv::FONT_HERSHEY_PLAIN, 2.0, cv::Scalar(255, 0, 0), 2, 8);
+  diagnostics_.timings.draw_ms = (cv::getTickCount() - draw_start) * 1000.0 / cv::getTickFrequency();
 
   return objects;
 }
@@ -353,4 +325,5 @@ void YOLO11_BUFF::save(const std::string &programName, const cv::Mat &image) {
   const std::filesystem::path savePath = saveDir / (programName + ".jpg");
   cv::imwrite(savePath.string(), image);
 }
+
 } // namespace auto_buff

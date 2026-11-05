@@ -32,6 +32,11 @@ public:
   // 遗留 FanBlade(五点) -> 标准五点观测
   static std::optional<BuffObservation> to_observation(const FanBlade &blade);
 
+  const BuffInferenceDiagnostics & inference_diagnostics() const
+  {
+    return MODE_.inference_diagnostics();
+  }
+
 private:
   YOLO11_BUFF MODE_;
 };

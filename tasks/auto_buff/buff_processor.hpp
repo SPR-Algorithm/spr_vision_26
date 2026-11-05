@@ -35,12 +35,27 @@ BuffInput make_buff_input(
   const Eigen::Quaterniond & imu_q, io::GimbalState gimbal_state, io::GimbalMode gimbal_mode,
   std::vector<BuffObservation> observations);
 
+// Frame-local copies of the stages actually executed by process(). Absent stage results
+// mean that the pipeline stopped before that stage produced a valid result.
+struct BuffDebugInfo
+{
+  bool reset = false;
+  bool input_valid = false;
+  // S2 candidate order, including explicit STATE_MODE_CONFLICT rejections before refinement.
+  std::vector<RefinedObservation> refined_observations;
+  std::optional<RuneReconstruction> reconstruction;
+  std::optional<RuneSlot> target_slot;
+  std::optional<RuneTarget> target;
+  PhaseMotionDiagnostics motion;
+  BuffDecision decision;
+};
+
 class BuffProcessor
 {
 public:
   BuffProcessor(const std::string & camera_config, const std::string & auto_buff_config);
 
-  io::VisionToGimbal process(const BuffInput & input);
+  io::VisionToGimbal process(const BuffInput & input, BuffDebugInfo * debug = nullptr);
   void reset();
 
 private:

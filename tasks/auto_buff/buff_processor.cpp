@@ -36,8 +36,9 @@ BuffProcessor::BuffProcessor(const std::string & camera_config, const std::strin
   tracking_timeout_ = std::chrono::milliseconds(timeout_ms);
 }
 
-io::VisionToGimbal BuffProcessor::process(const BuffInput & input)
+io::VisionToGimbal BuffProcessor::process(const BuffInput & input, BuffDebugInfo * debug)
 {
+  if (debug) *debug = BuffDebugInfo{};
   if (
     (last_mode_ && *last_mode_ != input.gimbal_mode) ||
     (last_timestamp_ && input.timestamp < *last_timestamp_) ||
@@ -45,12 +46,15 @@ io::VisionToGimbal BuffProcessor::process(const BuffInput & input)
     (last_reconstruction_timestamp_ &&
      input.timestamp - *last_reconstruction_timestamp_ > tracking_timeout_)) {
     reset();
+    if (debug) debug->reset = true;
     return {};
   }
   if (!is_valid(input)) {
     reset();
+    if (debug) debug->reset = true;
     return {};
   }
+  if (debug) debug->input_valid = true;
   last_mode_ = input.gimbal_mode;
   last_timestamp_ = input.timestamp;
 
@@ -58,16 +62,30 @@ io::VisionToGimbal BuffProcessor::process(const BuffInput & input)
   // observation validation and contour extraction belong exclusively to S3.
   std::vector<RefinedObservation> blades;
   blades.reserve(input.observations.size());
+  if (debug) debug->refined_observations.reserve(input.observations.size());
   for (const auto & observation : input.observations) {
     const auto state = resolve_state(input.gimbal_mode, observation.activation);
-    if (!state) continue;
+    if (!state) {
+      if (debug) {
+        // Preserve S2 candidate indices even when state resolution rejects a candidate
+        // before refinement. This diagnostic does not enter reconstruction.
+        RefinedObservation rejected;
+        rejected.points = observation.points;
+        rejected.detection_confidence = observation.confidence;
+        rejected.reject_reason = ObservationRejectReason::STATE_MODE_CONFLICT;
+        debug->refined_observations.push_back(std::move(rejected));
+      }
+      continue;
+    }
     auto refined = refiner_.refine(input.img, observation, *state);
+    if (debug) debug->refined_observations.push_back(refined);
     if (refined.valid()) blades.push_back(std::move(refined));
   }
   if (blades.empty()) return {};
   // S4 carries slot associations and armor centers along with the common rune pose.
   const auto reconstruction = reconstructor_.reconstruct(
     blades, input.imu_q.normalized(), last_reconstruction_pose_);
+  if (debug) debug->reconstruction = reconstruction;
   if (!reconstruction) return {};
   last_reconstruction_timestamp_ = input.timestamp;
   last_reconstruction_pose_ = reconstruction->pose;
@@ -86,11 +104,20 @@ io::VisionToGimbal BuffProcessor::process(const BuffInput & input)
     }
   }
   if (target_blade == nullptr) return {};
+  if (debug) debug->target_slot = target_blade->slot;
 
   // S5 absence means geometry exists but motion has not converged: attitude hold only.
   const auto target =
     motion_estimator_.update(reconstruction->pose, *target_blade, input.timestamp);
-  if (!target) return map_output(decision_module_.track(input.gimbal_state));
+  if (debug) {
+    debug->target = target;
+    debug->motion = motion_estimator_.diagnostics();
+  }
+  if (!target) {
+    const auto decision = decision_module_.track(input.gimbal_state);
+    if (debug) debug->decision = decision;
+    return map_output(decision);
+  }
 
   // S6 owns interception, ballistics and firing timing. Apply the common quality gate before
   // the single conversion to the protocol; a PnP fallback can never authorize firing.
@@ -103,6 +130,7 @@ io::VisionToGimbal BuffProcessor::process(const BuffInput & input)
      target->motion.model == MotionModel::UNAVAILABLE)) {
     decision.mode = BuffControlMode::TRACKING;
   }
+  if (debug) debug->decision = decision;
   return map_output(decision);
 }
 
